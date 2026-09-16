@@ -4,6 +4,10 @@
 #
 # brand:gen comes first on purpose: it rewrites src/design/fonts.generated.ts
 # from the brand file, and that generated module is what tsc then checks.
+#
+# Arguments pass through to design:check, so a build pipeline runs
+#   bash scripts/verify.sh --build
+# to hold the tree to the finished-product bar rather than the template's.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
@@ -16,6 +20,9 @@ npx tsc --noEmit
 
 echo "==> eslint . --quiet"
 npx eslint . --quiet
+
+echo "==> design:check"
+npx tsx scripts/design-check.mjs "$@"
 
 echo "==> next build"
 npx next build

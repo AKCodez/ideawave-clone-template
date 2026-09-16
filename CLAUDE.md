@@ -94,10 +94,28 @@ Plain hyphens, never em dashes. Short sentences. Say what the product does, not
 what category it belongs to. Empty states describe what will appear and how to
 cause it, never just "no data".
 
+## Design check
+
+`npm run design:check` is the gate that says whether this is a finished product
+or still a scaffold. It runs inside `npm run verify`. Six categories, each with
+its own exit code: 2 forbidden strings, raw colours and banned animation
+patterns, 3 landing composition, 4 renames, 5 generated files in sync with
+`src/brand.ts`, 6 the feature bar, 7 asset routes present, 0 clean.
+
+Rules only a finished build can satisfy (the template's own name, the renames,
+five landing sections, three feature models, demo data) print as warnings here
+and become failures under `npm run design:check -- --build`, which is what the
+build pipeline runs. So warnings in this repo are the gap to the bar, and every
+`FAIL` is yours to fix. `--json` prints the findings for the audit.
+
+Do not weaken a rule to get past it. Two exemptions already exist and are the
+only ones: `src/design/og-layouts.tsx` and `src/design/color.ts` may hold
+colour strings, because both derive them from tokens.
+
 ## Verify
 
 ```
-npm run verify   # brand:gen, then tsc --noEmit, eslint . --quiet, next build
+npm run verify   # brand:gen, tsc --noEmit, eslint . --quiet, design:check, next build
 npm run smoke    # against a server you started with npm run start
 ```
 
