@@ -103,10 +103,11 @@ patterns, 3 landing composition, 4 renames, 5 generated files in sync with
 `src/brand.ts`, 6 the feature bar, 7 asset routes present, 0 clean.
 
 Rules only a finished build can satisfy (the template's own name, the renames,
-five landing sections, three feature models, demo data) print as warnings here
-and become failures under `npm run design:check -- --build`, which is what the
-build pipeline runs. So warnings in this repo are the gap to the bar, and every
-`FAIL` is yours to fix. `--json` prints the findings for the audit.
+five landing sections, three feature models, demo data) print as warnings in the
+bare template and are failures inside a build. The script works out which it is:
+your checkout has `.clone/SPEC.md`, so you are in a build and all of them are
+failures you have to fix. `npm run design:check -- --build` forces the same mode
+by hand, and `--json` prints the findings for the audit.
 
 Do not weaken a rule to get past it. Two exemptions already exist and are the
 only ones: `src/design/og-layouts.tsx` and `src/design/color.ts` may hold

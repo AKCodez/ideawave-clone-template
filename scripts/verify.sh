@@ -5,9 +5,10 @@
 # brand:gen comes first on purpose: it rewrites src/design/fonts.generated.ts
 # from the brand file, and that generated module is what tsc then checks.
 #
-# Arguments pass through to design:check, so a build pipeline runs
-#   bash scripts/verify.sh --build
-# to hold the tree to the finished-product bar rather than the template's.
+# design:check works out on its own whether this is a Clone Studio build, by
+# looking for .clone/SPEC.md, so a build needs no extra argument here. Arguments
+# still pass through, so `bash scripts/verify.sh --build` forces the product bar
+# by hand.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

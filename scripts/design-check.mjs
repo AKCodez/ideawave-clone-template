@@ -16,10 +16,14 @@
  * When several categories fail the lowest code is returned, and every finding
  * is still printed.
  *
- * `--build` holds the tree to the finished-product bar. Without it the rules
- * only a generated product can satisfy are reported as warnings rather than
- * failures, so the template passes its own check while still showing how far it
- * is from the bar. build.sh passes --build.
+ * Inside a Clone Studio build the tree is held to the finished-product bar.
+ * Outside one, the rules only a generated product can satisfy are reported as
+ * warnings rather than failures, so the template passes its own check while
+ * still showing how far it is from the bar.
+ *
+ * A build is detected by `.clone/SPEC.md` existing, since the sandbox runs the
+ * template's plain `npm run verify` and passes no flags. `--build` forces the
+ * same mode by hand.
  *
  * `--json` prints the findings as JSON for the audit.
  */
@@ -29,7 +33,19 @@ import { dirname, join, relative, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const BUILD = process.argv.includes("--build");
+
+/* Build mode is detected, not requested. IdeaWave writes .clone/SPEC.md into
+   the checkout before the agent starts, and the sandbox then runs the
+   template's plain `npm run verify`, so no flag ever reaches this script there.
+   The file is what says "this is a build". --build forces the same mode by
+   hand, for checking a tree locally. */
+const SPEC_PATH = join(root, ".clone", "SPEC.md");
+const BUILD_REASON = process.argv.includes("--build")
+  ? "--build"
+  : existsSync(SPEC_PATH)
+    ? ".clone/SPEC.md"
+    : null;
+const BUILD = BUILD_REASON !== null;
 const JSON_OUT = process.argv.includes("--json");
 
 const findings = [];
@@ -384,9 +400,15 @@ const warnings = findings.filter((f) => !f.fatal);
 const exitCode = fatal[0]?.category ?? 0;
 
 if (JSON_OUT) {
-  console.log(JSON.stringify({ build: BUILD, ok: fatal.length === 0, exitCode, findings }, null, 2));
+  console.log(
+    JSON.stringify(
+      { build: BUILD, buildReason: BUILD_REASON, ok: fatal.length === 0, exitCode, findings },
+      null,
+      2,
+    ),
+  );
 } else {
-  console.log(`design:check${BUILD ? " --build" : ""}`);
+  console.log(`design:check${BUILD ? ` - build mode, via ${BUILD_REASON}` : ""}`);
   if (findings.length === 0) {
     console.log("clean - every rule passed");
   } else {
@@ -408,7 +430,8 @@ if (JSON_OUT) {
   if (warnings.length > 0 && !BUILD) {
     console.log(
       `\n${warnings.length} warning(s): rules only a finished build can satisfy. ` +
-        "They fail when design:check runs with --build.",
+        "They become failures inside a Clone Studio build, which is detected by " +
+        ".clone/SPEC.md existing.",
     );
   }
   console.log(`\n${fatal.length} failure(s), ${warnings.length} warning(s)`);
