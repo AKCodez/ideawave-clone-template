@@ -7,46 +7,51 @@ import { features } from "@/lib/env";
 import type { FormState } from "@/lib/form-state";
 import { getCurrentUser } from "@/lib/session";
 
-const titleSchema = z.string().min(1, "Give it a title.").max(120, "Keep it under 120 characters.");
+const schema = z.object({
+  title: z.string().min(1, "Give it a title.").max(120, "Keep the title under 120 characters."),
+  source: z.string().min(20, "Paste at least a paragraph.").max(20000, "That is too long to store."),
+});
 
 /**
- * The write half of the core loop. The auth check lives here, inside the
+ * The write half of the example loop. The auth check lives here, inside the
  * action - a hidden button is not a permission system.
  */
-export async function createCoreObject(
-  _prev: FormState,
-  formData: FormData,
-): Promise<FormState> {
+export async function createSnippet(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await getCurrentUser();
-  if (!user) return { status: "error", message: "Sign in to add anything." };
+  if (!user) return { status: "error", message: "Sign in to save anything." };
   if (!features.db) {
-    return { status: "error", message: "Set DATABASE_URL to save records." };
+    return { status: "error", message: "Set DATABASE_URL to save snippets." };
   }
 
-  const parsed = titleSchema.safeParse(String(formData.get("title") ?? "").trim());
+  const parsed = schema.safeParse({
+    title: String(formData.get("title") ?? "").trim(),
+    source: String(formData.get("source") ?? "").trim(),
+  });
   if (!parsed.success) {
-    return { status: "error", message: parsed.error.issues[0]?.message ?? "Invalid title." };
+    return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the form and try again." };
   }
 
   try {
-    await db.coreObject.create({ data: { userId: user.id, title: parsed.data } });
+    await db.snippet.create({
+      data: { userId: user.id, title: parsed.data.title, source: parsed.data.source },
+    });
   } catch (error) {
-    console.error("[dashboard] failed to create record", error);
+    console.error("[snippets] failed to create", error);
     return { status: "error", message: "We could not save that. Try again." };
   }
 
   revalidatePath("/dashboard");
-  return { status: "ok", message: "Added." };
+  return { status: "ok", message: "Saved." };
 }
 
 /** Deletes are scoped by owner in the WHERE clause, never by the UI. */
-export async function deleteCoreObject(formData: FormData): Promise<void> {
+export async function deleteSnippet(formData: FormData): Promise<void> {
   const user = await getCurrentUser();
   if (!user || !features.db) return;
 
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
-  await db.coreObject.deleteMany({ where: { id, userId: user.id } });
+  await db.snippet.deleteMany({ where: { id, userId: user.id } });
   revalidatePath("/dashboard");
 }

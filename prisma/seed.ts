@@ -6,8 +6,16 @@ const DEMO_EMAIL = "demo@example.com";
 const DEMO_PASSWORD = "demo-pass-1234";
 
 const samples = [
-  { title: "First record from the seed", data: { source: "seed", order: 1 } },
-  { title: "Second record from the seed", data: { source: "seed", order: 2 } },
+  {
+    title: "Kickoff call with Northwind",
+    source:
+      "They run four warehouses and still reconcile stock by hand every Friday. The ops lead said the spreadsheet is the product and everyone is afraid of it.",
+  },
+  {
+    title: "Support thread: exports",
+    source:
+      "Three customers asked for CSV export in the same week. Two of them are exporting to send to an accountant, one is building a dashboard.",
+  },
 ];
 
 /** Idempotent: safe to run against a database that has already been seeded. */
@@ -27,15 +35,13 @@ async function main(): Promise<void> {
   const user = await db.user.findUniqueOrThrow({ where: { email: DEMO_EMAIL } });
 
   for (const sample of samples) {
-    const found = await db.coreObject.findFirst({
+    const found = await db.snippet.findFirst({
       where: { userId: user.id, title: sample.title },
       select: { id: true },
     });
     if (found) continue;
-    await db.coreObject.create({
-      data: { userId: user.id, title: sample.title, data: sample.data },
-    });
-    console.log(`Created record "${sample.title}"`);
+    await db.snippet.create({ data: { userId: user.id, title: sample.title, source: sample.source } });
+    console.log(`Created snippet "${sample.title}"`);
   }
 }
 

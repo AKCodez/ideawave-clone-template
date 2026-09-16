@@ -1,5 +1,7 @@
 @import "tailwindcss";
 @import "./brand.generated.css";
+@import "./components.css";
+@import "./motion.css";
 
 /* ---------------------------------------------------------------------------
    Base layer and the three utilities every component may use.

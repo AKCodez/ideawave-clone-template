@@ -1,0 +1,5 @@
+/* ---------------------------------------------------------------------------
+   Component styling that a utility string cannot express: per-direction hover
+   and press states, the dialog scrim, marquee keyframes owned by components.
+   Every value comes from a token in brand.generated.css.
+--------------------------------------------------------------------------- */

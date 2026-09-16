@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CoreObjectForm } from "@/components/core-object-form";
+import { SnippetForm } from "@/components/snippet-form";
 import { SignOutButton } from "@/components/sign-out-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { features } from "@/lib/env";
 import { getCurrentUser } from "@/lib/session";
-import { deleteCoreObject } from "./actions";
+import { deleteSnippet } from "./actions";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
@@ -25,7 +25,7 @@ export default async function DashboardPage() {
 
   // Read on the server, render inline. No client-side fetching for first paint.
   const records = features.db
-    ? await db.coreObject.findMany({
+    ? await db.snippet.findMany({
         where: { userId: user.id },
         orderBy: { createdAt: "desc" },
         take: 50,
@@ -61,21 +61,20 @@ export default async function DashboardPage() {
       </div>
 
       <Card className="mt-10">
-        <h2 className="font-display text-xl">Add a record</h2>
+        <h2 className="font-display text-xl">Add a snippet</h2>
         <p className="mt-1 mb-4 text-sm text-muted">
-          This is the placeholder core loop. Replace CoreObject with the real thing your
-          users create.
+          Paste something long. The example loop stores it, then summarises it.
         </p>
-        <CoreObjectForm />
+        <SnippetForm />
       </Card>
 
       <section className="mt-10">
-        <h2 className="font-display text-xl">Your records</h2>
+        <h2 className="font-display text-xl">Your snippets</h2>
 
         {records.length === 0 ? (
           <Card className="mt-4 border-dashed">
             <p className="text-sm text-muted">
-              Nothing here yet. Add your first record above and it will appear in this
+              Nothing here yet. Paste your first snippet above and it will appear in this
               list, newest first.
             </p>
           </Card>
@@ -92,7 +91,7 @@ export default async function DashboardPage() {
                     {dateFormat.format(record.createdAt)}
                   </p>
                 </div>
-                <form action={deleteCoreObject}>
+                <form action={deleteSnippet}>
                   <input type="hidden" name="id" value={record.id} />
                   <Button type="submit" variant="ghost" size="sm">
                     Delete

@@ -26,7 +26,7 @@ model User {
   sessions     Session[]
   accounts     Account[]
   subscription Subscription?
-  coreObjects  CoreObject[]
+  snippets     Snippet[]
 
   @@unique([email])
   @@map("user")
@@ -105,18 +105,27 @@ model WaitlistEntry {
   @@map("waitlist_entry")
 }
 
-/// PLACEHOLDER. Rename and reshape this into the real object of your core loop
-/// (the thing a user creates, sees and comes back for), then write a migration.
-/// Everything that references it lives in src/app/dashboard.
-model CoreObject {
-  id        String   @id @default(cuid())
+/// EXAMPLE FEATURE. One object a member creates, the app enriches, and they come
+/// back for. Replace it with the real objects of your features, then write a
+/// migration. Everything that references it lives in src/app/(app)/snippets.
+model Snippet {
+  id        String        @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
-  data      Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  source    String
+  /// Written by the AI action, or left null when AI is not configured.
+  summary   String?
+  tags      String[]      @default([])
+  status    SnippetStatus @default(DRAFT)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@index([userId, createdAt])
-  @@map("core_object")
+  @@map("snippet")
+}
+
+enum SnippetStatus {
+  DRAFT
+  READY
 }
