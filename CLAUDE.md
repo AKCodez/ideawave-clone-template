@@ -97,9 +97,15 @@ cause it, never just "no data".
 ## Verify
 
 ```
-npm run verify   # tsc --noEmit && eslint . --quiet && next build
+npm run verify   # brand:gen, then tsc --noEmit, eslint . --quiet, next build
 npm run smoke    # against a server you started with npm run start
 ```
+
+`npm run smoke` covers the page routes and the six generated asset routes:
+`/opengraph-image`, `/twitter-image`, `/icon`, `/manifest.webmanifest`,
+`/robots.txt` and `/sitemap.xml`. What it asserts follows each route's content
+type, so an image has to carry real image bytes and the manifest has to parse.
+`SMOKE_PATHS` overrides the list, `BASE_URL` points it at another server.
 
 A file being written is not verification. A phase is done when `npm run verify`
 exits clean and you have walked the core loop yourself.
