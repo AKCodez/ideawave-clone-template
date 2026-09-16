@@ -23,7 +23,7 @@ export function SiteHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-(--radius-control) px-2 py-1.5 text-sm text-muted transition-colors hover:text-ink sm:px-3"
+              className="rounded-input px-2 py-1.5 text-sm text-muted transition-colors hover:text-ink sm:px-3"
             >
               {link.label}
             </Link>

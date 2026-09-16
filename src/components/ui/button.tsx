@@ -5,8 +5,8 @@ export type ButtonVariant = "primary" | "secondary" | "ghost";
 export type ButtonSize = "sm" | "md" | "lg";
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-(--radius-control) font-medium " +
-  "transition-colors duration-150 ease-(--ease-out-soft) " +
+  "inline-flex items-center justify-center gap-2 rounded-input font-medium " +
+  "transition-colors duration-150 ease-out-soft " +
   "disabled:cursor-not-allowed disabled:opacity-50";
 
 const variants: Record<ButtonVariant, string> = {

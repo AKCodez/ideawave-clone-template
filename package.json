@@ -1,14 +1,17 @@
 {
   "name": "ideawave-clone-template",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run brand:gen && next dev",
+    "prebuild": "tsx scripts/brand-gen.ts",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint . --quiet",
     "typecheck": "tsc --noEmit",
-    "verify": "tsc --noEmit && eslint . --quiet && next build",
+    "brand:gen": "tsx scripts/brand-gen.ts",
+    "test": "vitest run",
+    "verify": "npm run brand:gen && tsc --noEmit && eslint . --quiet && next build",
     "smoke": "node scripts/smoke.mjs",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
@@ -31,9 +34,8 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@better-auth/cli": "^1.4.22",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
@@ -42,7 +44,8 @@
     "prisma": "^7.10.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.1"
   },
   "description": "Production-shaped Next.js starter that IdeaWave Clone Studio hands to a coding agent.",
   "license": "MIT",

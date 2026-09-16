@@ -1,0 +1,176 @@
+/* GENERATED FILE - do not edit src/app/brand.generated.css by hand.
+   Written by scripts/brand-gen.ts from src/brand.ts.
+   Brand: Clone Kit - editorial / dark - accent hue 48.
+   Change src/brand.ts and run `npm run brand:gen`. */
+
+@theme {
+  /* Tailwind's own palette, fonts, radii and shadows are removed on purpose:
+     a token is the only way to name a colour here, so `text-white`,
+     `bg-zinc-900` and `shadow-lg` compile to nothing at all. */
+  --color-*: initial;
+  --font-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+
+  /* Colours of the brand's own scheme (dark), so an unset
+     data-scheme attribute still renders the right thing. */
+  --color-canvas: oklch(0.155 0.012 62);
+  --color-surface: oklch(0.2 0.0132 62);
+  --color-elevated: oklch(0.245 0.0144 62);
+  --color-overlay: oklch(0.08 0.0144 62 / 0.72);
+  --color-line: oklch(0.285 0.0156 62);
+  --color-line-strong: oklch(0.395 0.0168 62);
+  --color-ink: oklch(0.965 0.0096 62);
+  --color-muted: oklch(0.7 0.0192 62);
+  --color-faint: oklch(0.56 0.0168 62);
+  --color-accent: oklch(0.75 0.152 48);
+  --color-accent-hover: oklch(0.81 0.1177 48);
+  --color-accent-soft: oklch(0.245 0.0608 48);
+  --color-on-accent: oklch(0.2 0.0455 48);
+  --color-positive: oklch(0.72 0.15 150);
+  --color-warning: oklch(0.72 0.1482 82);
+  --color-critical: oklch(0.72 0.15 27);
+  --color-focus: oklch(0.74 0.152 48);
+
+  /* Faces. The loaders live in src/design/fonts.generated.ts. */
+  --font-display: var(--font-display-face), "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-body: var(--font-body-face), "Inter Tight", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--font-mono-face), "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Type scale: every size is fluid and carries its own leading,
+     tracking and weight, so `text-h2` is the whole decision. */
+  --text-display: clamp(2.75rem, 1.5rem + 5.4vw, 5.75rem);
+  --text-display--line-height: 0.96;
+  --text-display--letter-spacing: -0.035em;
+  --text-display--font-weight: 400;
+  --text-h1: clamp(2.125rem, 1.35rem + 3.4vw, 3.75rem);
+  --text-h1--line-height: 1.02;
+  --text-h1--letter-spacing: -0.03em;
+  --text-h1--font-weight: 400;
+  --text-h2: clamp(1.625rem, 1.2rem + 1.9vw, 2.5rem);
+  --text-h2--line-height: 1.1;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h2--font-weight: 400;
+  --text-h3: clamp(1.1875rem, 1.05rem + 0.7vw, 1.5rem);
+  --text-h3--line-height: 1.25;
+  --text-h3--letter-spacing: -0.015em;
+  --text-h3--font-weight: 500;
+  --text-lead: clamp(1.0625rem, 1rem + 0.45vw, 1.3125rem);
+  --text-lead--line-height: 1.6;
+  --text-lead--letter-spacing: -0.005em;
+  --text-lead--font-weight: 400;
+  --text-body: 1rem;
+  --text-body--line-height: 1.65;
+  --text-body--letter-spacing: 0em;
+  --text-body--font-weight: 400;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.55;
+  --text-small--letter-spacing: 0em;
+  --text-small--font-weight: 400;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.04em;
+  --text-caption--font-weight: 500;
+
+  /* Radius ramp. The brutal direction sets every step to 0. */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
+  --radius-2xl: 0.75rem;
+  --radius-input: 0.25rem;
+
+  /* Borders. */
+  --stroke: 1px;
+  --stroke-strong: 2px;
+
+  /* Elevation. The tints are scheme-dependent and set below. */
+  --shadow-1: 0 1px 2px -1px var(--shadow-tint-weak), 0 1px 1px var(--shadow-tint-weak);
+  --shadow-2: 0 2px 4px -2px var(--shadow-tint-weak), 0 6px 12px -4px var(--shadow-tint);
+  --shadow-3: 0 4px 8px -4px var(--shadow-tint), 0 16px 28px -8px var(--shadow-tint);
+  --shadow-4: 0 8px 16px -8px var(--shadow-tint), 0 32px 56px -16px var(--shadow-tint-strong);
+  --shadow-hard: 3px 3px 0 0 var(--color-line-strong);
+  --shadow-glow: 0 0 0 1px var(--color-line);
+
+  /* Rhythm and measure. */
+  --spacing-section: clamp(4.5rem, 3rem + 6vw, 8rem);
+  --spacing-block: clamp(1.75rem, 1.25rem + 1.6vw, 2.75rem);
+  --container-prose: 38rem;
+  --container-content: 64rem;
+  --container-wide: 80rem;
+
+  /* Motion. Durations already carry durationScale 1;
+     distances carry the lively intensity. */
+  --duration-1: 140ms;
+  --duration-2: 240ms;
+  --duration-3: 420ms;
+  --duration-4: 640ms;
+  --duration-5: 900ms;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-step: steps(5, end);
+  --motion-distance: 32px;
+  --motion-lift: 0px;
+  --motion-tilt: 0deg;
+  --motion-marquee: 40px;
+  --motion-duration: var(--duration-4);
+  --motion-ease: var(--ease-out-expo);
+}
+
+html[data-scheme="dark"] {
+  color-scheme: dark;
+  --color-canvas: oklch(0.155 0.012 62);
+  --color-surface: oklch(0.2 0.0132 62);
+  --color-elevated: oklch(0.245 0.0144 62);
+  --color-overlay: oklch(0.08 0.0144 62 / 0.72);
+  --color-line: oklch(0.285 0.0156 62);
+  --color-line-strong: oklch(0.395 0.0168 62);
+  --color-ink: oklch(0.965 0.0096 62);
+  --color-muted: oklch(0.7 0.0192 62);
+  --color-faint: oklch(0.56 0.0168 62);
+  --color-accent: oklch(0.75 0.152 48);
+  --color-accent-hover: oklch(0.81 0.1177 48);
+  --color-accent-soft: oklch(0.245 0.0608 48);
+  --color-on-accent: oklch(0.2 0.0455 48);
+  --color-positive: oklch(0.72 0.15 150);
+  --color-warning: oklch(0.72 0.1482 82);
+  --color-critical: oklch(0.72 0.15 27);
+  --color-focus: oklch(0.74 0.152 48);
+  --shadow-tint-weak: oklch(0.04 0.0072 62 / 0.3);
+  --shadow-tint: oklch(0.04 0.0072 62 / 0.42);
+  --shadow-tint-strong: oklch(0.04 0.0072 62 / 0.55);
+  --shadow-glow-tint: transparent;
+}
+html[data-scheme="light"] {
+  color-scheme: light;
+  --color-canvas: oklch(0.972 0.012 62);
+  --color-surface: oklch(0.99 0.0064 62);
+  --color-elevated: oklch(0.998 0.0014 62);
+  --color-overlay: oklch(0.25 0.0144 62 / 0.55);
+  --color-line: oklch(0.867 0.0156 62);
+  --color-line-strong: oklch(0.702 0.0168 62);
+  --color-ink: oklch(0.2 0.0096 62);
+  --color-muted: oklch(0.5 0.0192 62);
+  --color-faint: oklch(0.62 0.0168 62);
+  --color-accent: oklch(0.54 0.1471 48);
+  --color-accent-hover: oklch(0.49 0.1335 48);
+  --color-accent-soft: oklch(0.934 0.0369 48);
+  --color-on-accent: oklch(0.95 0.0243 48);
+  --color-positive: oklch(0.54 0.1487 150);
+  --color-warning: oklch(0.56 0.1154 82);
+  --color-critical: oklch(0.57 0.15 27);
+  --color-focus: oklch(0.55 0.1498 48);
+  --shadow-tint-weak: oklch(0.44 0.012 62 / 0.05);
+  --shadow-tint: oklch(0.44 0.012 62 / 0.08);
+  --shadow-tint-strong: oklch(0.44 0.012 62 / 0.12);
+  --shadow-glow-tint: transparent;
+}
+
+/* Plain aliases for raw var() use where a utility would be noise. */
+:root {
+  --space-section: var(--spacing-section);
+  --space-block: var(--spacing-block);
+}

@@ -84,7 +84,7 @@ export default async function DashboardPage() {
             {records.map((record) => (
               <li
                 key={record.id}
-                className="flex items-center justify-between gap-4 rounded-(--radius-card) border border-line bg-surface px-4 py-3"
+                className="flex items-center justify-between gap-4 rounded-lg border border-line bg-surface px-4 py-3"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm text-ink">{record.title}</p>

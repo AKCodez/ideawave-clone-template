@@ -31,7 +31,7 @@ export default async function ComparePage({ params }: PageProps) {
       <h1 className="mt-4 text-3xl sm:text-4xl">{entry.title}</h1>
       <p className="mt-3 max-w-2xl text-muted">{entry.summary}</p>
 
-      <div className="mt-10 overflow-x-auto rounded-(--radius-card) border border-line">
+      <div className="mt-10 overflow-x-auto rounded-lg border border-line">
         <table className="w-full min-w-[34rem] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-line bg-surface">
