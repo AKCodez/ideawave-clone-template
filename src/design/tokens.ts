@@ -92,8 +92,8 @@ export type Tokens = {
     keys: { display: FontKey; body: FontKey; mono: FontKey };
     /** Full CSS font stacks for `--font-display`, `--font-body`, `--font-mono`. */
     stacks: { display: string; body: string; mono: string };
-    /** Vendored TTF filenames for the OG and icon routes. */
-    ogFiles: { display: string; body: string; mono: string };
+    /** Vendored TTF filename for the display face, read by the OG and icon routes. */
+    ogFile: string;
   };
 };
 
@@ -224,11 +224,7 @@ export function buildTokens(brandValue: Brand): Tokens {
         body: fontStack(brandValue.type.body, FONT_VARIABLES.body),
         mono: fontStack(brandValue.type.mono, FONT_VARIABLES.mono),
       },
-      ogFiles: {
-        display: FONT_LOADERS[brandValue.type.display].ogFile,
-        body: FONT_LOADERS[brandValue.type.body].ogFile,
-        mono: FONT_LOADERS[brandValue.type.mono].ogFile,
-      },
+      ogFile: FONT_LOADERS[brandValue.type.display].ogFile,
     },
   };
 }

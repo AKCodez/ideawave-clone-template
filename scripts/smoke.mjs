@@ -1,14 +1,39 @@
 #!/usr/bin/env node
 /**
- * Smoke test against an already-running server.
+ * Smoke test against an already-running server. Starts nothing itself.
  *
+ *   npm run smoke
  *   BASE_URL=http://localhost:3000 SMOKE_PATHS="/,/premium" node scripts/smoke.mjs
  *
- * Starts nothing itself. Asserts every path answers 200, ships a non-empty
- * <title>, and contains none of the strings a broken Next.js page renders.
+ * Every path must answer 200. What else is asserted depends on what the route
+ * actually serves, so the page routes and the generated asset routes can share
+ * one run:
+ *
+ *   html   non-empty <title>, and none of the strings a broken page renders
+ *   image  a real image: the magic bytes must match the declared type
+ *   json   parses, and is not an empty object
+ *   xml    parses far enough to have a root element
+ *   text   not blank
+ *
+ * Add a path and the right assertions follow from its content type.
  */
 const BASE_URL = (process.env.BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
-const PATHS = (process.env.SMOKE_PATHS ?? "/")
+
+/** Pages first, then the six generated asset routes. */
+const DEFAULT_PATHS = [
+  "/",
+  "/compare",
+  "/premium",
+  "/sign-in",
+  "/opengraph-image",
+  "/twitter-image",
+  "/icon",
+  "/manifest.webmanifest",
+  "/robots.txt",
+  "/sitemap.xml",
+];
+
+const PATHS = (process.env.SMOKE_PATHS ?? DEFAULT_PATHS.join(","))
   .split(",")
   .map((p) => p.trim())
   .filter(Boolean);
@@ -27,40 +52,129 @@ function visibleMarkup(html) {
     .replace(/<template[\s\S]*?<\/template>/gi, "");
 }
 
+/** Leading bytes that prove a payload really is the image type it claims. */
+const IMAGE_MAGIC = [
+  { type: "png", bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
+  { type: "jpeg", bytes: [0xff, 0xd8, 0xff] },
+  { type: "gif", bytes: [0x47, 0x49, 0x46, 0x38] },
+  { type: "ico", bytes: [0x00, 0x00, 0x01, 0x00] },
+];
+
+/** @param {Uint8Array} bytes */
+function detectImage(bytes) {
+  for (const candidate of IMAGE_MAGIC) {
+    if (candidate.bytes.every((byte, i) => bytes[i] === byte)) return candidate.type;
+  }
+  if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) {
+    return "webp";
+  }
+  const head = new TextDecoder().decode(bytes.slice(0, 200)).trimStart();
+  if (head.startsWith("<svg") || head.startsWith("<?xml")) return "svg";
+  return null;
+}
+
+/** @param {number} bytes */
+function humanSize(bytes) {
+  return bytes < 1024 ? `${bytes} B` : `${Math.round(bytes / 1024)} KB`;
+}
+
+/**
+ * Which family of assertions a response gets, from its Content-Type.
+ * @param {string} contentType
+ */
+function kindOf(contentType) {
+  const type = contentType.toLowerCase();
+  if (type.includes("html")) return "html";
+  if (type.startsWith("image/")) return "image";
+  if (type.includes("json")) return "json";
+  if (type.includes("xml")) return "xml";
+  return "text";
+}
+
 /** @param {string} path */
 async function check(path) {
   const url = `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  /** @type {{path: string, status: number, kind: string, detail: string, ok: boolean, reason: string}} */
+  const base = { path, status: 0, kind: "", detail: "", ok: false, reason: "" };
+
+  let response;
   try {
-    const response = await fetch(url, { headers: { accept: "text/html" } });
-    const body = visibleMarkup(await response.text());
-
-    if (response.status !== 200) return { path, status: response.status, title: "", ok: false, reason: `status ${response.status}` };
-
-    const match = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(body);
-    const title = match?.[1]?.trim() ?? "";
-    if (!title) return { path, status: response.status, title: "", ok: false, reason: "empty <title>" };
-
-    const hit = FORBIDDEN.find((needle) => body.includes(needle));
-    if (hit) return { path, status: response.status, title, ok: false, reason: `contains "${hit}"` };
-
-    return { path, status: response.status, title, ok: true, reason: "" };
+    response = await fetch(url, { headers: { accept: "*/*" } });
   } catch (error) {
-    return { path, status: 0, title: "", ok: false, reason: String(error instanceof Error ? error.message : error) };
+    return { ...base, reason: error instanceof Error ? error.message : String(error) };
   }
+
+  const contentType = response.headers.get("content-type") ?? "";
+  const kind = kindOf(contentType);
+  const result = { ...base, status: response.status, kind };
+
+  if (response.status !== 200) {
+    return { ...result, reason: `status ${response.status}` };
+  }
+
+  if (kind === "image") {
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    const detected = detectImage(bytes);
+    const declared = contentType.split("/")[1]?.split(";")[0]?.trim() ?? "";
+    if (bytes.length === 0) return { ...result, reason: "empty image body" };
+    if (!detected) return { ...result, detail: humanSize(bytes.length), reason: "not a recognisable image" };
+    if (declared.includes("svg") ? detected !== "svg" : detected !== declared) {
+      return { ...result, detail: humanSize(bytes.length), reason: `declared ${declared}, bytes say ${detected}` };
+    }
+    return { ...result, detail: `${detected} ${humanSize(bytes.length)}`, ok: true };
+  }
+
+  const raw = await response.text();
+
+  if (kind === "json") {
+    let parsed;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return { ...result, reason: "body is not valid JSON" };
+    }
+    const keys = parsed && typeof parsed === "object" ? Object.keys(parsed).length : 0;
+    if (keys === 0) return { ...result, reason: "JSON has no entries" };
+    return { ...result, detail: `${keys} keys`, ok: true };
+  }
+
+  if (kind === "xml") {
+    const root = /<([a-z][\w:-]*)[\s>]/i.exec(raw.replace(/<\?[\s\S]*?\?>/g, ""));
+    if (!root) return { ...result, reason: "no XML root element" };
+    return { ...result, detail: `<${root[1]}> ${humanSize(raw.length)}`, ok: true };
+  }
+
+  if (kind === "html") {
+    const body = visibleMarkup(raw);
+    const title = /<title[^>]*>([\s\S]*?)<\/title>/i.exec(body)?.[1]?.trim() ?? "";
+    if (!title) return { ...result, reason: "empty <title>" };
+    const hit = FORBIDDEN.find((needle) => body.includes(needle));
+    if (hit) return { ...result, detail: title.slice(0, 32), reason: `contains "${hit}"` };
+    return { ...result, detail: title.slice(0, 32), ok: true };
+  }
+
+  if (raw.trim().length === 0) return { ...result, reason: "empty body" };
+  const hit = FORBIDDEN.find((needle) => raw.includes(needle));
+  if (hit) return { ...result, reason: `contains "${hit}"` };
+  return { ...result, detail: humanSize(raw.length), ok: true };
 }
 
 const results = [];
 for (const path of PATHS) results.push(await check(path));
 
 const columns = [
-  { key: "ok", head: "", width: 3, render: (r) => (r.ok ? "ok " : "FAIL") },
-  { key: "status", head: "STATUS", width: 6, render: (r) => String(r.status) },
-  { key: "path", head: "PATH", width: Math.max(4, ...results.map((r) => r.path.length)), render: (r) => r.path },
-  { key: "title", head: "TITLE", width: Math.max(5, ...results.map((r) => Math.min(r.title.length, 40))), render: (r) => r.title.slice(0, 40) },
-  { key: "reason", head: "NOTE", width: Math.max(4, ...results.map((r) => r.reason.length)), render: (r) => r.reason },
-];
+  { head: "", render: (r) => (r.ok ? "ok" : "FAIL") },
+  { head: "STATUS", render: (r) => String(r.status) },
+  { head: "PATH", render: (r) => r.path },
+  { head: "TYPE", render: (r) => r.kind },
+  { head: "DETAIL", render: (r) => r.detail },
+  { head: "NOTE", render: (r) => r.reason },
+].map((column) => ({
+  ...column,
+  width: Math.max(column.head.length, ...results.map((r) => column.render(r).length)),
+}));
 
-const line = (cells) => cells.map((c, i) => c.padEnd(columns[i].width)).join("  ");
+const line = (cells) => cells.map((cell, i) => cell.padEnd(columns[i].width)).join("  ").trimEnd();
 
 console.log(`smoke: ${BASE_URL}`);
 console.log(line(columns.map((c) => c.head)));

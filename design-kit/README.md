@@ -106,5 +106,5 @@ import { tokens } from "@/design/tokens";
 tokens.active.hex.accent;      // "#e8a33d" - flat hex for og/icon/email
 tokens.motion.durations[2];    // 420 (ms)
 tokens.direction.key;          // "editorial"
-tokens.fonts.ogFiles.display;  // "instrument-serif-400.ttf"
+tokens.fonts.ogFile;           // "instrument-serif-400.ttf"
 ```

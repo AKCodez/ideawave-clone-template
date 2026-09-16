@@ -1,48 +1,64 @@
 import "dotenv/config";
+import { demoPersona, demoSnippetsWithDates } from "../src/content/demo";
+import { DEMO_LOGIN } from "../src/design/types";
 import { auth } from "../src/lib/auth";
 import { db } from "../src/lib/db";
 
-const DEMO_EMAIL = "demo@example.com";
-const DEMO_PASSWORD = "demo-pass-1234";
-
-const samples = [
-  {
-    title: "Kickoff call with Northwind",
-    source:
-      "They run four warehouses and still reconcile stock by hand every Friday. The ops lead said the spreadsheet is the product and everyone is afraid of it.",
-  },
-  {
-    title: "Support thread: exports",
-    source:
-      "Three customers asked for CSV export in the same week. Two of them are exporting to send to an accountant, one is building a dashboard.",
-  },
-];
-
-/** Idempotent: safe to run against a database that has already been seeded. */
+/**
+ * Seeds the demo account and the rows behind every screenshot.
+ *
+ * The content comes from `src/content/demo.ts`, which the landing page reads
+ * too, so the marketing page and the signed-in dashboard show the same thing.
+ * No model is called here: every summary and tag is already written out.
+ *
+ * Safe to run twice. The demo user is created once through Better Auth so the
+ * password is hashed its way, and each row is matched on (owner, title) and
+ * updated rather than duplicated - including its `createdAt`, so re-seeding an
+ * old preview slides the dates forward instead of leaving it looking dead.
+ */
 async function main(): Promise<void> {
-  const existing = await db.user.findUnique({ where: { email: DEMO_EMAIL } });
+  const existing = await db.user.findUnique({ where: { email: DEMO_LOGIN.email } });
 
   if (!existing) {
-    // Sign-up goes through Better Auth so the password is hashed its way.
     await auth.api.signUpEmail({
-      body: { email: DEMO_EMAIL, password: DEMO_PASSWORD, name: "Demo" },
+      body: { email: DEMO_LOGIN.email, password: DEMO_LOGIN.password, name: demoPersona.name },
     });
-    console.log(`Created demo user ${DEMO_EMAIL}`);
+    console.log(`Created demo user ${DEMO_LOGIN.email}`);
   } else {
-    console.log(`Demo user ${DEMO_EMAIL} already exists`);
+    console.log(`Demo user ${DEMO_LOGIN.email} already exists`);
   }
 
-  const user = await db.user.findUniqueOrThrow({ where: { email: DEMO_EMAIL } });
+  const user = await db.user.findUniqueOrThrow({ where: { email: DEMO_LOGIN.email } });
 
-  for (const sample of samples) {
+  let created = 0;
+  let updated = 0;
+
+  for (const snippet of demoSnippetsWithDates()) {
+    const fields = {
+      source: snippet.source,
+      summary: snippet.summary,
+      tags: snippet.tags,
+      status: snippet.status,
+      createdAt: snippet.createdAt,
+    };
+
     const found = await db.snippet.findFirst({
-      where: { userId: user.id, title: sample.title },
+      where: { userId: user.id, title: snippet.title },
       select: { id: true },
     });
-    if (found) continue;
-    await db.snippet.create({ data: { userId: user.id, title: sample.title, source: sample.source } });
-    console.log(`Created snippet "${sample.title}"`);
+
+    if (found) {
+      await db.snippet.update({ where: { id: found.id }, data: fields });
+      updated += 1;
+    } else {
+      await db.snippet.create({ data: { userId: user.id, title: snippet.title, ...fields } });
+      created += 1;
+    }
   }
+
+  console.log(
+    `Seeded ${demoPersona.workspaceName}: ${created} row(s) created, ${updated} refreshed`,
+  );
 }
 
 main()

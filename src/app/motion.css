@@ -1,4 +1,445 @@
 /* ---------------------------------------------------------------------------
    Motion: scroll-driven timelines, the no-js fallback, and the global
    reduced-motion block. Owned by src/components/motion/.
+
+   Four rules hold this file together:
+   1. Only transform, opacity and clip-path are ever animated.
+   2. Anything driven by scroll is a CSS scroll-driven animation behind
+      @supports; where the browser cannot drive it, the element sits at its
+      finished frame instead.
+   3. Nothing is ever invisible. Without JavaScript, and under reduced motion,
+      every entrance lands on its final frame immediately.
+   4. Every number is a token. The only literals here are ambient loop periods
+      (how long a decorative loop takes to repeat), which are named below.
 --------------------------------------------------------------------------- */
+
+:root {
+  /* The direction's reveal timing. Editorial and craft take the long step,
+     brutal snaps, luminous springs in JavaScript instead. */
+  --reveal-duration: var(--duration-4);
+  --reveal-ease: var(--motion-ease);
+
+  /* Ambient loop periods. These are not transition durations: they are how long
+     a decorative loop takes to repeat once, and reduced motion stops them. */
+  --motion-aurora-period: 24s;
+  --motion-grain-period: calc(var(--duration-4) * 2);
+  --motion-marquee-fallback: 24s;
+
+  /* Fixed decorative layers. The progress bar sits above the grain. */
+  --motion-grain-z: 60;
+  --motion-progress-z: 70;
+}
+
+html[data-direction="editorial"],
+html[data-direction="craft"] {
+  --reveal-duration: var(--duration-5);
+}
+
+/* ---------------------------------------------------------------------------
+   Nothing is ever invisible without JavaScript.
+
+   <NoJsScript /> swaps html.no-js for html.js before the first paint. If it
+   never runs, every JavaScript-driven entrance is forced to its final frame.
+   The important flags are load bearing: the server-rendered markup carries
+   motion's own inline `initial` style, and only an important declaration in a
+   stylesheet outranks an inline one. Purely CSS-driven effects (parallax, the
+   underline draw, the marquee, aurora, grain) are deliberately left alone:
+   they run without JavaScript and should.
+--------------------------------------------------------------------------- */
+
+html.no-js [data-reveal],
+html.no-js [data-stagger],
+html.no-js [data-stagger-item],
+html.no-js [data-split-unit] {
+  opacity: 1 !important;
+  transform: none !important;
+  clip-path: none !important;
+}
+
+html.no-js [data-magnetic],
+html.no-js [data-tilt] {
+  transform: none !important;
+}
+
+/* Belt and braces for browsers that expose the scripting media feature: the
+   same guarantee even if the inline script is blocked by a policy. */
+@media (scripting: none) {
+  [data-reveal],
+  [data-stagger],
+  [data-stagger-item],
+  [data-split-unit] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion: movement is removed, not shortened.
+--------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  [data-reveal],
+  [data-stagger],
+  [data-stagger-item],
+  [data-split-unit],
+  [data-parallax],
+  [data-underline] {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+
+  [data-marquee-track],
+  [data-aurora-layer],
+  [data-grain] {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  [data-magnetic],
+  [data-tilt] {
+    transform: none !important;
+  }
+
+  [data-spotlight-layer] {
+    opacity: 0 !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Parallax: a view() timeline, never a scroll listener. Unsupported browsers
+   get translate 0, which is the element exactly where the layout put it.
+--------------------------------------------------------------------------- */
+
+@keyframes iw-parallax {
+  from {
+    transform: translate3d(0, var(--parallax-from, 0px), 0);
+  }
+  to {
+    transform: translate3d(0, var(--parallax-to, 0px), 0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-parallax] {
+      will-change: transform;
+      animation: iw-parallax linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll progress: a scroll() timeline on a presentational bar. Where the
+   timeline is unsupported the bar is removed rather than left lying at 100%.
+--------------------------------------------------------------------------- */
+
+@keyframes iw-scroll-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+[data-scroll-progress] {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  block-size: calc(var(--stroke-strong) * 2);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background-color: var(--color-accent);
+  pointer-events: none;
+  z-index: var(--motion-progress-z);
+}
+
+@supports (animation-timeline: scroll()) {
+  [data-scroll-progress] {
+    animation: iw-scroll-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  [data-scroll-progress] {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   The underline draw. Editorial rules and craft's drawn stroke both use it: a
+   clip-path wipe from the leading edge, driven by the view() timeline so it
+   needs no JavaScript at all. The resting state is the finished state.
+--------------------------------------------------------------------------- */
+
+@keyframes iw-underline {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+[data-underline] {
+  clip-path: inset(0 0 0 0);
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    [data-underline] {
+      animation: iw-underline var(--reveal-ease) both;
+      animation-timeline: view();
+      animation-range: entry 35% cover 30%;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Marquee. The duration comes from the track's own width divided by the
+   direction's px-per-second token, written onto the element as a custom
+   property; the animation itself is a plain transform loop.
+--------------------------------------------------------------------------- */
+
+@keyframes iw-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+[data-marquee] {
+  overflow: hidden;
+  max-inline-size: 100%;
+}
+
+[data-marquee-track] {
+  display: flex;
+  inline-size: max-content;
+  will-change: transform;
+  animation: iw-marquee var(--iw-marquee-duration, var(--motion-marquee-fallback)) linear infinite;
+}
+
+[data-marquee-reverse="true"] [data-marquee-track] {
+  animation-direction: reverse;
+}
+
+[data-marquee-pause="true"]:hover [data-marquee-track],
+[data-marquee-pause="true"]:focus-within [data-marquee-track] {
+  animation-play-state: paused;
+}
+
+/* The poster direction shouts. */
+html[data-direction="brutal"] [data-marquee] {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* ---------------------------------------------------------------------------
+   Aurora mesh: accent clouds drifting on transform alone. Luminous drifts; the
+   other directions keep a still wash and lose the movement.
+--------------------------------------------------------------------------- */
+
+@keyframes iw-aurora-a {
+  0% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8%, 6%, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-6%, -4%, 0) scale(1);
+  }
+}
+
+@keyframes iw-aurora-b {
+  0% {
+    transform: translate3d(6%, 5%, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(-7%, -6%, 0) scale(0.94);
+  }
+  100% {
+    transform: translate3d(6%, 5%, 0) scale(1.08);
+  }
+}
+
+[data-aurora] {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  max-inline-size: 100%;
+  pointer-events: none;
+  contain: paint;
+}
+
+[data-aurora-layer] {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+/* A poster has edges, not clouds. */
+html[data-direction="brutal"] [data-aurora-layer] {
+  border-radius: 0;
+}
+
+[data-aurora-drift="true"] [data-aurora-layer="a"] {
+  animation: iw-aurora-a var(--motion-aurora-period) ease-in-out infinite;
+}
+
+[data-aurora-drift="true"] [data-aurora-layer="b"] {
+  animation: iw-aurora-b var(--motion-aurora-period) ease-in-out infinite;
+}
+
+/* ---------------------------------------------------------------------------
+   Grain: one repeating feTurbulence tile, inlined so it costs no request. The
+   tile never animates; only its transform jitters, and the light scheme keeps
+   it near the threshold of visibility so a pale page never reads as dirty.
+--------------------------------------------------------------------------- */
+
+@keyframes iw-grain {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(-1%, 1%, 0);
+  }
+  50% {
+    transform: translate3d(1%, -1%, 0);
+  }
+  75% {
+    transform: translate3d(-1%, -1%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+[data-grain] {
+  position: fixed;
+  inset: -2%;
+  pointer-events: none;
+  z-index: var(--motion-grain-z);
+  opacity: 0.055;
+  background-repeat: repeat;
+  background-size: 160px 160px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.86' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: iw-grain var(--motion-grain-period) steps(4, end) infinite;
+}
+
+html[data-scheme="light"] [data-grain] {
+  opacity: 0.018;
+}
+
+/* ---------------------------------------------------------------------------
+   Page transitions. React's <ViewTransition> tags the tree with the iw-page
+   class; the browser does the rest. Clicks made mid-transition still reach the
+   live page underneath.
+--------------------------------------------------------------------------- */
+
+@keyframes iw-page-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--motion-distance) * -0.2), 0);
+  }
+}
+
+@keyframes iw-page-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--motion-distance) * 0.35), 0);
+  }
+}
+
+::view-transition {
+  pointer-events: none;
+}
+
+::view-transition-old(.iw-page) {
+  animation: iw-page-out var(--duration-2) var(--ease-out-soft) both;
+}
+
+::view-transition-new(.iw-page) {
+  animation: iw-page-in var(--duration-4) var(--motion-ease) both;
+}
+
+/* ---------------------------------------------------------------------------
+   Pointer effects. Every one of them reads a custom property that JavaScript
+   writes straight onto the element, so a pointer move never re-renders React,
+   and every one of them is inert where there is no fine pointer.
+--------------------------------------------------------------------------- */
+
+[data-magnetic] {
+  transform: translate3d(var(--mx, 0px), var(--my, 0px), 0);
+  transition: transform var(--duration-2) var(--ease-spring);
+}
+
+[data-tilt] {
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transform-style: preserve-3d;
+  transition: transform var(--duration-2) var(--ease-out-soft);
+}
+
+[data-spotlight] {
+  position: relative;
+  isolation: isolate;
+}
+
+[data-spotlight-layer] {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: var(--spot-size);
+  block-size: var(--spot-size);
+  margin-block-start: calc(var(--spot-size) / -2);
+  margin-inline-start: calc(var(--spot-size) / -2);
+  border-radius: 50%;
+  background-image: radial-gradient(closest-side, var(--color-accent), transparent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: -1;
+  transform: translate3d(var(--sx, 0px), var(--sy, 0px), 0);
+  transition: opacity var(--duration-2) var(--ease-out-soft);
+}
+
+[data-spotlight]:hover [data-spotlight-layer],
+[data-spotlight]:focus-within [data-spotlight-layer] {
+  opacity: var(--spot-opacity, 0.22);
+}
+
+@media (hover: none), (pointer: coarse) {
+  [data-magnetic],
+  [data-tilt] {
+    transform: none;
+  }
+
+  [data-spotlight-layer] {
+    display: none;
+  }
+}

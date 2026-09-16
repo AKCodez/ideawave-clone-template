@@ -13,7 +13,8 @@ export type FontLoader = {
   importName: string;
   /** Only for static families; variable families omit it. */
   weights?: string[];
-  /** Filename under `src/design/og-fonts/`, latin subset, used by OG and icon. */
+  /** Filename under `src/design/og-fonts/`, latin subset. Only the eight display
+   *  faces are vendored; body and mono text in an OG card uses `OG_TEXT_FILE`. */
   ogFile: string;
   /** Weight the OG font file carries, so layouts can pick a matching face. */
   ogWeight: number;

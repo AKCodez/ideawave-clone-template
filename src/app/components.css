@@ -1,5 +1,454 @@
 /* ---------------------------------------------------------------------------
    Component styling that a utility string cannot express: per-direction hover
-   and press states, the dialog scrim, marquee keyframes owned by components.
-   Every value comes from a token in brand.generated.css.
+   and press states, the dialog scrim, the tooltip, the shimmer.
+   Every value here comes from a token in brand.generated.css.
+
+   Two rules hold everywhere in this file:
+     1. Nothing names a colour, radius, shadow or duration directly. Only
+        var(--token).
+     2. Every transform is removed again under prefers-reduced-motion, at the
+        bottom of the file, while its colour and shadow change stays.
 --------------------------------------------------------------------------- */
+
+/* ===========================================================================
+   Buttons
+   .btn is on every button; .btn-<variant> carries the per-direction
+   treatment. The colours stay in Tailwind utilities on the element itself.
+   =========================================================================== */
+
+.btn {
+  transition-property: transform, background-color, border-color, box-shadow, opacity;
+  transition-duration: var(--duration-1);
+  transition-timing-function: var(--ease-out-soft);
+}
+
+.btn-spinner {
+  animation: btn-spin 700ms linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- editorial: a rule draws itself under the label, press dims ----------- */
+
+html[data-direction="editorial"] .btn-link,
+html[data-direction="editorial"] .btn-ghost {
+  position: relative;
+}
+
+html[data-direction="editorial"] .btn-link::after,
+html[data-direction="editorial"] .btn-ghost::after {
+  content: "";
+  position: absolute;
+  bottom: 0.35em;
+  height: var(--stroke);
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-2) var(--ease-out-expo);
+}
+
+html[data-direction="editorial"] .btn-link::after {
+  inset-inline: 0;
+}
+
+html[data-direction="editorial"] .btn-ghost::after {
+  inset-inline: 0.9em;
+}
+
+html[data-direction="editorial"] .btn-link:not(:disabled):hover::after,
+html[data-direction="editorial"] .btn-link:not(:disabled):focus-visible::after,
+html[data-direction="editorial"] .btn-ghost:not(:disabled):hover::after,
+html[data-direction="editorial"] .btn-ghost:not(:disabled):focus-visible::after {
+  transform: scaleX(1);
+}
+
+html[data-direction="editorial"] .btn:not(:disabled):active {
+  opacity: 0.78;
+}
+
+/* --- luminous: the button lifts into its own glow ------------------------- */
+
+html[data-direction="luminous"] .btn:not(:disabled):hover {
+  transform: translateY(calc(var(--motion-lift) * -1));
+  box-shadow: var(--shadow-glow);
+}
+
+html[data-direction="luminous"] .btn:not(:disabled):active {
+  transform: translateY(0) scale(0.985);
+}
+
+/* --- brutal: the label shifts off its own hard shadow --------------------- */
+/* Radius needs no rule here: the brutal direction sets every radius token to
+   0, so rounded-input and rounded-lg already compile to nothing. */
+
+html[data-direction="brutal"] .btn:not(:disabled):hover {
+  transform: translate(-3px, -3px);
+  box-shadow: var(--shadow-hard);
+}
+
+html[data-direction="brutal"] .btn:not(:disabled):active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+/* --- craft: a printed card lifting off the page --------------------------- */
+
+html[data-direction="craft"] .btn-primary,
+html[data-direction="craft"] .btn-secondary,
+html[data-direction="craft"] .btn-outline,
+html[data-direction="craft"] .btn-danger {
+  box-shadow: var(--shadow-2);
+}
+
+html[data-direction="craft"] .btn:not(:disabled):hover {
+  transform: translateY(calc(var(--motion-lift) * -1));
+  box-shadow: var(--shadow-3);
+}
+
+html[data-direction="craft"] .btn:not(:disabled):active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-2);
+}
+
+/* ===========================================================================
+   Interactive cards: the same four treatments, one step calmer
+   =========================================================================== */
+
+.card-interactive {
+  transition-property: transform, background-color, border-color, box-shadow, opacity;
+  transition-duration: var(--duration-2);
+  transition-timing-function: var(--ease-out-soft);
+}
+
+html[data-direction="editorial"] .card-interactive {
+  position: relative;
+}
+
+html[data-direction="editorial"] .card-interactive::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: var(--stroke-strong);
+  background-color: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--duration-3) var(--ease-out-expo);
+}
+
+html[data-direction="editorial"] .card-interactive:hover::after,
+html[data-direction="editorial"] .card-interactive:focus-within::after {
+  transform: scaleX(1);
+}
+
+html[data-direction="editorial"] .card-interactive:active {
+  opacity: 0.85;
+}
+
+html[data-direction="luminous"] .card-interactive:hover,
+html[data-direction="luminous"] .card-interactive:focus-within {
+  transform: translateY(calc(var(--motion-lift) * -1));
+  box-shadow: var(--shadow-glow);
+}
+
+html[data-direction="luminous"] .card-interactive:active {
+  transform: translateY(0) scale(0.99);
+}
+
+html[data-direction="brutal"] .card-interactive:hover,
+html[data-direction="brutal"] .card-interactive:focus-within {
+  transform: translate(-3px, -3px);
+  box-shadow: var(--shadow-hard);
+}
+
+html[data-direction="brutal"] .card-interactive:active {
+  transform: translate(2px, 2px);
+  box-shadow: none;
+}
+
+html[data-direction="craft"] .card-interactive {
+  box-shadow: var(--shadow-2);
+}
+
+html[data-direction="craft"] .card-interactive:hover,
+html[data-direction="craft"] .card-interactive:focus-within {
+  transform: translateY(calc(var(--motion-lift) * -1));
+  box-shadow: var(--shadow-3);
+}
+
+html[data-direction="craft"] .card-interactive:active {
+  transform: translateY(0);
+  box-shadow: var(--shadow-2);
+}
+
+/* ===========================================================================
+   The sticker badge: a label someone slapped on by hand
+   =========================================================================== */
+
+.sticker {
+  transform: rotate(-2deg);
+  transform-origin: center;
+}
+
+html[data-direction="editorial"] .sticker {
+  border-width: var(--stroke);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+html[data-direction="luminous"] .sticker {
+  box-shadow: var(--shadow-glow);
+}
+
+html[data-direction="brutal"] .sticker {
+  border-width: var(--stroke-strong);
+  border-color: var(--color-line-strong);
+  box-shadow: var(--shadow-hard);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  transform: rotate(-2.5deg);
+}
+
+html[data-direction="craft"] .sticker {
+  box-shadow: var(--shadow-2);
+}
+
+/* ===========================================================================
+   Site header: the one piece of chrome that changes shape per direction.
+   Luminous puts the page behind glass; brutal draws a rule you cannot miss.
+   =========================================================================== */
+
+.site-header {
+  border-bottom: var(--stroke) solid var(--color-line);
+}
+
+html[data-direction="luminous"] .site-header {
+  background-color: color-mix(in oklab, var(--color-canvas) 78%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+html[data-direction="brutal"] .site-header {
+  border-bottom-width: var(--stroke-strong);
+  border-bottom-color: var(--color-line-strong);
+}
+
+/* ===========================================================================
+   Dialog: the native element, so the top layer beats any filtered ancestor
+   and no portal is needed
+   =========================================================================== */
+
+dialog.dlg {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
+  max-width: 100%;
+  height: 100%;
+  max-height: 100%;
+  background: transparent;
+  color: var(--color-ink);
+  overflow: hidden;
+}
+
+dialog.dlg::backdrop {
+  background-color: var(--color-overlay);
+}
+
+dialog.dlg[open] .dlg-panel {
+  animation: dlg-center-in var(--duration-2) var(--ease-out-soft) both;
+}
+
+dialog.dlg[open] .dlg-panel-sheet {
+  animation: dlg-sheet-in var(--duration-3) var(--ease-out-expo) both;
+}
+
+@keyframes dlg-center-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+}
+
+@keyframes dlg-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+/* ===========================================================================
+   Toasts
+   =========================================================================== */
+
+.toast-item {
+  animation: toast-in var(--duration-2) var(--ease-out-soft) both;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* ===========================================================================
+   Tooltip: CSS only, shown on hover and on keyboard focus
+   =========================================================================== */
+
+.tip {
+  position: relative;
+  display: inline-flex;
+}
+
+.tip-bubble {
+  position: absolute;
+  z-index: 40;
+  left: 50%;
+  bottom: calc(100% + 0.5rem);
+  translate: -50% 0;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--duration-1) var(--ease-out-soft),
+    visibility var(--duration-1);
+}
+
+.tip-bubble[data-side="bottom"] {
+  bottom: auto;
+  top: calc(100% + 0.5rem);
+}
+
+.tip:hover > .tip-bubble,
+.tip:focus-within > .tip-bubble {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* ===========================================================================
+   Skeleton: one sweep, removed entirely under reduced motion
+   =========================================================================== */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-surface);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--color-elevated) 50%,
+    transparent 100%
+  );
+  animation: skeleton-sweep 1400ms var(--ease-out-soft) infinite;
+}
+
+@keyframes skeleton-sweep {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+/* ===========================================================================
+   Switch: the thumb moves, nothing else
+   =========================================================================== */
+
+.switch-thumb {
+  transition: transform var(--duration-2) var(--ease-out-soft);
+}
+
+/* ===========================================================================
+   Tabs: the one indicator allowed to travel
+   =========================================================================== */
+
+.tab-indicator {
+  transition: transform var(--duration-2) var(--ease-out-soft);
+}
+
+/* ===========================================================================
+   Reduced motion: every transform above is dropped, every colour and shadow
+   change above is kept.
+   =========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .card-interactive {
+    transition-property: background-color, border-color, box-shadow, opacity;
+  }
+
+  html[data-direction="editorial"] .btn-link::after,
+  html[data-direction="editorial"] .btn-ghost::after,
+  html[data-direction="editorial"] .card-interactive::after {
+    transition: none;
+    transform: scaleX(1);
+    opacity: 0;
+  }
+
+  html[data-direction="editorial"] .btn-link:not(:disabled):hover::after,
+  html[data-direction="editorial"] .btn-link:not(:disabled):focus-visible::after,
+  html[data-direction="editorial"] .btn-ghost:not(:disabled):hover::after,
+  html[data-direction="editorial"] .btn-ghost:not(:disabled):focus-visible::after,
+  html[data-direction="editorial"] .card-interactive:hover::after,
+  html[data-direction="editorial"] .card-interactive:focus-within::after {
+    opacity: 1;
+  }
+
+  html[data-direction="luminous"] .btn:not(:disabled):hover,
+  html[data-direction="luminous"] .btn:not(:disabled):active,
+  html[data-direction="brutal"] .btn:not(:disabled):hover,
+  html[data-direction="brutal"] .btn:not(:disabled):active,
+  html[data-direction="craft"] .btn:not(:disabled):hover,
+  html[data-direction="craft"] .btn:not(:disabled):active,
+  html[data-direction="luminous"] .card-interactive:hover,
+  html[data-direction="luminous"] .card-interactive:focus-within,
+  html[data-direction="luminous"] .card-interactive:active,
+  html[data-direction="brutal"] .card-interactive:hover,
+  html[data-direction="brutal"] .card-interactive:focus-within,
+  html[data-direction="brutal"] .card-interactive:active,
+  html[data-direction="craft"] .card-interactive:hover,
+  html[data-direction="craft"] .card-interactive:focus-within,
+  html[data-direction="craft"] .card-interactive:active {
+    transform: none;
+  }
+
+  .btn-spinner {
+    animation: btn-fade 1200ms ease-in-out infinite alternate;
+  }
+
+  @keyframes btn-fade {
+    from {
+      opacity: 0.35;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  dialog.dlg[open] .dlg-panel,
+  dialog.dlg[open] .dlg-panel-sheet,
+  .toast-item {
+    animation: none;
+  }
+
+  .skeleton::after {
+    animation: none;
+    transform: none;
+    background-image: none;
+    background-color: var(--color-elevated);
+    opacity: 0.5;
+  }
+
+  .switch-thumb,
+  .tab-indicator {
+    transition: none;
+  }
+}

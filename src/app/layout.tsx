@@ -4,9 +4,11 @@ import brand from "@/brand";
 import { fontVariables } from "@/design/fonts.generated";
 import { tokens } from "@/design/tokens";
 import { DemoBanner } from "@/components/demo-banner";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
-import { appName, appUrl } from "@/lib/env";
+import { MotionProvider } from "@/components/motion/provider";
+import { NoJsScript } from "@/components/motion/no-js";
+import { PageTransition } from "@/components/motion";
+import { ToastProvider } from "@/components/ui/toast";
+import { appName, appUrl, features } from "@/lib/env";
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
@@ -22,14 +24,30 @@ export const viewport: Viewport = {
   colorScheme: brand.scheme,
 };
 
+/**
+ * Root layout: the document, the fonts, the providers. Nothing else.
+ *
+ * Chrome belongs to the route groups - (marketing) has the site header and
+ * footer, (app) has the shell, (auth) has the split - so a page can never
+ * inherit navigation it did not ask for.
+ */
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" data-scheme={brand.scheme} data-direction={brand.direction} className={fontVariables}>
+    <html
+      lang="en"
+      data-scheme={brand.scheme}
+      data-direction={brand.direction}
+      className={`no-js ${fontVariables}`}
+      suppressHydrationWarning
+    >
       <body className="flex min-h-screen flex-col">
-        <DemoBanner />
-        <SiteHeader />
-        <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <NoJsScript />
+        <DemoBanner enabled={features.demo} />
+        <MotionProvider>
+          <ToastProvider>
+            <PageTransition>{children}</PageTransition>
+          </ToastProvider>
+        </MotionProvider>
       </body>
     </html>
   );

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactElement } from "react";
+import { GoogleLogoIcon } from "@phosphor-icons/react/dist/ssr";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
-import { Input, Label } from "@/components/ui/input";
+import { Field, Input } from "@/components/ui/input";
 
 export type AuthMode = "sign-in" | "sign-up";
 
@@ -14,12 +15,12 @@ export function AuthForm({
 }: {
   mode: AuthMode;
   googleEnabled: boolean;
-}) {
+}): ReactElement {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
-  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
     setError(null);
     setPending(true);
@@ -44,31 +45,31 @@ export function AuthForm({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <form onSubmit={onSubmit} className="flex flex-col gap-4">
         {mode === "sign-up" ? (
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" autoComplete="name" placeholder="Your name" />
-          </div>
+          <Field id="auth-name" label="Name">
+            <Input name="name" autoComplete="name" placeholder="Your name" />
+          </Field>
         ) : null}
 
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="email">Email</Label>
+        <Field id="auth-email" label="Email">
           <Input
-            id="email"
             name="email"
             type="email"
             required
             autoComplete="email"
             placeholder="you@company.com"
           />
-        </div>
+        </Field>
 
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="password">Password</Label>
+        <Field
+          id="auth-password"
+          label="Password"
+          hint={mode === "sign-up" ? "At least 8 characters." : undefined}
+          error={error ?? undefined}
+        >
           <Input
-            id="password"
             name="password"
             type="password"
             required
@@ -76,34 +77,30 @@ export function AuthForm({
             autoComplete={mode === "sign-up" ? "new-password" : "current-password"}
             placeholder="At least 8 characters"
           />
-        </div>
+        </Field>
 
-        {error ? (
-          <p role="alert" className="text-sm text-critical">
-            {error}
-          </p>
-        ) : null}
-
-        <Button type="submit" disabled={pending}>
-          {pending
-            ? "Working..."
-            : mode === "sign-up"
-              ? "Create account"
-              : "Sign in"}
+        <Button type="submit" size="lg" loading={pending} className="w-full">
+          {mode === "sign-up" ? "Create account" : "Sign in"}
         </Button>
       </form>
 
       {googleEnabled ? (
-        <Button
-          variant="secondary"
-          disabled={pending}
-          onClick={() => {
-            setPending(true);
-            void authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
-          }}
-        >
-          Continue with Google
-        </Button>
+        <>
+          <p className="text-center text-caption text-faint">or</p>
+          <Button
+            variant="secondary"
+            size="lg"
+            disabled={pending}
+            className="w-full"
+            onClick={() => {
+              setPending(true);
+              void authClient.signIn.social({ provider: "google", callbackURL: "/dashboard" });
+            }}
+          >
+            <GoogleLogoIcon aria-hidden="true" weight="bold" className="size-4" />
+            Continue with Google
+          </Button>
+        </>
       ) : null}
     </div>
   );

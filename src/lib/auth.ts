@@ -2,8 +2,8 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db";
-import { sendEmail } from "@/lib/email";
-import { appUrl, authUrl, env, features } from "@/lib/env";
+import { renderPasswordResetEmail, sendEmail } from "@/lib/email";
+import { appName, appUrl, authUrl, env, features } from "@/lib/env";
 
 /**
  * Better Auth on our own Postgres through the Prisma adapter. Sessions are read
@@ -22,22 +22,18 @@ const socialProviders = features.googleOAuth
   : {};
 
 export const auth = betterAuth({
-  appName: "Clone Template",
+  appName,
   // Replaced by BETTER_AUTH_SECRET in every real deployment. The literal keeps
   // a credential-free `next build` working; it is never a production secret.
-  secret: env.BETTER_AUTH_SECRET || "clone-template-insecure-dev-secret",
+  secret: env.BETTER_AUTH_SECRET || "insecure-build-only-secret",
   baseURL: authUrl,
   database: prismaAdapter(db, { provider: "postgresql" }),
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
     sendResetPassword: async ({ user, url }) => {
-      await sendEmail({
-        to: user.email,
-        subject: "Reset your password",
-        html: `<p>Someone asked to reset the password for this account.</p><p><a href="${url}">Choose a new password</a></p><p>If that was not you, ignore this email and nothing changes.</p>`,
-        text: `Reset your password: ${url}`,
-      });
+      const { subject, html, text } = renderPasswordResetEmail(url);
+      await sendEmail({ to: user.email, subject, html, text });
     },
   },
   socialProviders,
