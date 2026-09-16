@@ -391,6 +391,29 @@ for (const name of [
   }
 }
 
+/* The demo banner fails closed: without the prop it renders nothing, on every
+   preview, with no error anywhere. Checked here because nothing else can catch
+   it - not tsc, since the prop is optional, and not a smoke test, since the
+   page still returns 200. */
+const layoutPath = join(root, "src/app/layout.tsx");
+if (!existsSync(layoutPath)) {
+  report(7, "demo-banner", "src/app/layout.tsx", 0, "missing");
+} else {
+  const layout = read(layoutPath);
+  const at = lines(layout).findIndex((l) => l.includes("<DemoBanner")) + 1;
+  if (!/<DemoBanner\b/.test(layout)) {
+    report(7, "demo-banner", "src/app/layout.tsx", 1, "root layout never renders <DemoBanner />");
+  } else if (!/<DemoBanner\b[\s\S]{0,200}?enabled\s*=\s*\{\s*features\.demo\s*\}/.test(layout)) {
+    report(
+      7,
+      "demo-banner",
+      "src/app/layout.tsx",
+      at || 1,
+      "DemoBanner without enabled={features.demo} shows nothing and says nothing",
+    );
+  }
+}
+
 /* -------------------------------- output ---------------------------------- */
 
 findings.sort((a, b) => a.category - b.category || a.file.localeCompare(b.file) || a.line - b.line);
