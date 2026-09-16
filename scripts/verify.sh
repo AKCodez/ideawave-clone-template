@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
 # Everything that must be green before any change counts as done.
-# Same three commands as `npm run verify`, runnable directly in a sandbox.
+# The same chain as `npm run verify`, runnable directly in a sandbox.
+#
+# brand:gen comes first on purpose: it rewrites src/design/fonts.generated.ts
+# from the brand file, and that generated module is what tsc then checks.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
+
+echo "==> brand:gen"
+npx tsx scripts/brand-gen.ts
 
 echo "==> tsc --noEmit"
 npx tsc --noEmit
