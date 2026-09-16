@@ -243,6 +243,22 @@ scan(
 
 /* -------------------------- 3: landing composition ------------------------ */
 
+/** The sections the kit ships, mirroring KIT_SECTIONS in src/design/types.ts. */
+const KIT_SECTION_NAMES = [
+  "Hero",
+  "ProductFrame",
+  "ProductFrameSection",
+  "Bento",
+  "Steps",
+  "Stats",
+  "Compare",
+  "Pricing",
+  "Faq",
+  "CtaBand",
+  "Footer",
+  "SiteHeader",
+];
+
 const landing = ["src/app/(marketing)/page.tsx", "src/app/page.tsx"]
   .map((p) => join(root, p))
   .find((p) => existsSync(p));
@@ -251,7 +267,10 @@ if (!landing) {
   report(3, "landing", "src/app", 0, "no landing page found", { productBar: true });
 } else {
   const imported = new Set();
-  const re = /import\s*\{([^}]+)\}\s*from\s*["']@\/components\/sections\/[^"']+["']/g;
+  /* Both spellings count: the barrel (`@/components/sections`, which is how the
+     kit documents it) and a deep path. Matching only the deep path failed a
+     correctly composed landing page. */
+  const re = /import\s*\{([^}]+)\}\s*from\s*["']@\/components\/sections(?:\/[^"']+)?["']/g;
   let match;
   const text = read(landing);
   while ((match = re.exec(text)) !== null) {
@@ -259,6 +278,13 @@ if (!landing) {
       const clean = name.trim().split(/\s+as\s+/)[0].trim();
       if (clean) imported.add(clean);
     }
+  }
+  /* A section reached by some other import spelling still counts, so the JSX is
+     read too. The escape must be doubled: inside a template literal a lone \s
+     collapses to "s", which silently made this match only `<Hero/>` and never
+     `<Hero className=... />`. */
+  for (const name of KIT_SECTION_NAMES) {
+    if (new RegExp(`<${name}(?=[\\s/>])`).test(text)) imported.add(name);
   }
   const file = rel(landing);
   if (imported.size < 5) {
