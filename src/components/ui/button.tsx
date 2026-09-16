@@ -39,11 +39,14 @@ const sizes: Record<ButtonSize, string> = {
   xl: "h-14 px-7 text-lead",
 };
 
+/* A link variant is type rather than a box, but it is still something a thumb
+   has to hit: the min-height keeps every one of them at or above WCAG 2.5.8's
+   24px without padding it into looking like a button. */
 const linkSizes: Record<ButtonSize, string> = {
-  sm: "text-small",
-  md: "text-small",
-  lg: "text-body",
-  xl: "text-lead",
+  sm: "min-h-6 text-small",
+  md: "min-h-7 text-small",
+  lg: "min-h-8 text-body",
+  xl: "min-h-9 text-lead",
 };
 
 /** Class string for anything that should look like a button, links included. */

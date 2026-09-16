@@ -30,7 +30,7 @@ export function SiteHeader(): ReactElement {
         <div className="flex items-center gap-2">
           <NavLinks items={LINKS} className="hidden md:flex" />
 
-          <Button asChild variant="secondary" size="sm" className="hidden md:inline-flex">
+          <Button asChild variant="secondary" size="md" className="hidden md:inline-flex">
             <Link href="/sign-in">Sign in</Link>
           </Button>
 

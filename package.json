@@ -18,7 +18,11 @@
     "db:push": "prisma db push",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "brand:set": "tsx scripts/brand-set.ts",
+    "audit": "node scripts/audit.mjs",
+    "preview:directions": "node scripts/preview-directions.mjs",
+    "verify:full": "npm run verify && npm run test"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

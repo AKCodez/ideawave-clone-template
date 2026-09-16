@@ -1,18 +1,29 @@
 # IdeaWave clone template
 
-A production-shaped Next.js starter. IdeaWave's Clone Studio clones it into a
-sandbox, drops a spec at `.clone/SPEC.md`, and hands it to a coding agent that
-builds the actual product on top. It is equally useful on its own as the day-one
-scaffold for a small SaaS.
+A production-shaped Next.js starter with a complete design system attached.
+IdeaWave's Clone Studio clones it into a sandbox, writes a brand and a spec into
+it, and hands it to a coding agent that builds the actual product on top. It is
+equally useful on its own as the day-one scaffold for a small SaaS.
 
-Everything that is tedious and easy to get wrong is already wired and verified:
+Everything tedious and easy to get wrong is already wired and verified:
 
-- **Next.js 16** App Router, React 19, TypeScript strict with `noUncheckedIndexedAccess`
-- **Tailwind v4**, CSS-first, three dark palettes with font pairings, no config file
-- **Prisma 7** on **Neon** Postgres through the driver adapter, with an initial migration
-- **Better Auth** email and password, plus Google when you supply the keys
-- **Stripe** Checkout for one subscription price, mirrored by a verified webhook
-- **Resend** for transactional email, which logs instead of sending when unconfigured
+- **One brand file.** `src/brand.ts` is data. Colour, type, radius, shadow,
+  rhythm and motion are all derived from it, including the OG image, the icon,
+  the emails and the focus ring.
+- **Four art directions** - editorial, luminous, brutal and craft - each with
+  its own corners, strokes, shadows, type scale and motion signature.
+- **Contrast that is solved, not hoped for.** The generator refuses to write a
+  palette where body text misses 12:1 or secondary text misses 4.6:1.
+- **Fifteen motion primitives** on `motion`, with scroll-driven CSS timelines,
+  a no-JavaScript fallback, and reduced motion that removes movement.
+- **Fourteen hand-rolled primitives** and eleven page sections. No component
+  library, nothing to upgrade, no `tailwind.config`.
+- **Next.js 16** App Router, React 19, TypeScript strict with
+  `noUncheckedIndexedAccess`.
+- **Prisma 7** on **Neon** Postgres through the driver adapter, with migrations.
+- **Better Auth** email and password, plus Google when you supply the keys.
+- **Stripe** Checkout mirrored by a verified webhook, **Resend** for email, and
+  AI through the **Vercel AI Gateway** that degrades instead of throwing.
 
 Nothing is required to build. With no `DATABASE_URL` and no secrets at all,
 `npm run verify` still passes: missing credentials turn a feature off with a
@@ -30,38 +41,53 @@ With a Neon database:
 
 ```bash
 npm run db:migrate:deploy   # apply prisma/migrations
-npm run db:seed             # demo@example.com / demo-pass-1234, plus two records
+npm run db:seed             # the demo account, plus twelve seeded rows
 ```
 
 Verify before you call anything done:
 
 ```bash
-npm run verify              # tsc --noEmit && eslint . --quiet && next build
+npm run verify   # brand:gen && tsc && eslint && design:check && next build
+npm run test     # the unit suite
 npm run start & npm run smoke
 ```
 
-`SMOKE_PATHS="/,/compare,/premium,/sign-in" npm run smoke` checks each path for
-a 200, a real `<title>`, and no error text.
+## Change how it looks
+
+Edit `src/brand.ts` and run `npm run brand:gen`. Direction, scheme, accent hue,
+neutrals, fonts, wordmark, motion intensity and voice all live there, and the
+generator writes `src/app/brand.generated.css` and
+`src/design/fonts.generated.ts` from it. Both are committed, and
+`npm run design:check` fails if they drift.
+
+To see the directions rather than read about them:
+
+```bash
+npm run brand:set luminous && npm run dev
+node scripts/preview-directions.mjs        # builds and photographs all six
+```
+
+`design-kit/README.md` documents every token, primitive, section and motion
+primitive, with four composition recipes and the anti-patterns that cost the
+most time.
 
 ## What is where
 
 | Path | What lives there |
 | --- | --- |
-| `src/app/` | Pages and the two route handlers (auth, Stripe webhook) |
-| `src/components/ui/` | Button, Input, Card, Badge - hand-rolled, no library |
-| `src/content/compare.ts` | Comparison-page content, the only place a competitor is named |
-| `src/lib/` | env, db, auth, session, stripe, email |
-| `prisma/` | Schema, the initial migration, the seed |
-| `scripts/` | `verify.sh` and `smoke.mjs` |
-
-Pick the look with `APP_PALETTE=ember|slate|meadow`. Each palette is a dark
-token set plus its own display-serif and body-sans pairing, defined entirely in
-`src/app/globals.css`. It is read at build time so prerendered and dynamic pages
-always agree: changing it needs a rebuild.
+| `src/brand.ts` | The only design decision in the repository |
+| `src/design/` | Tokens, colour maths, the four directions, fonts, OG layouts |
+| `src/components/ui/` | The primitives, hand-rolled |
+| `src/components/sections/` | The eleven page sections |
+| `src/components/motion/` | The motion kit |
+| `src/content/` | Marketing copy, comparison content, demo data, routes |
+| `src/lib/` | env, db, auth, session, stripe, email, ai |
+| `prisma/` | Schema, migrations, the seed |
+| `scripts/` | brand-gen, design-check, audit, preview, smoke |
 
 ## Continue in your agent
 
-**Claude Code** reads `CLAUDE.md` on start, so it picks up the contract by itself:
+**Claude Code** reads `CLAUDE.md` on start, so it picks up the contract itself:
 
 ```bash
 git clone <repo> && cd <dir> && claude
@@ -79,9 +105,10 @@ https://stackblitz.com/github/<owner>/<repo>
 
 ## Deploying
 
-Vercel reads `vercel.json`: `prisma generate && next build`. Set `DATABASE_URL`,
-`DIRECT_URL` and `BETTER_AUTH_SECRET`, then add Stripe and Resend keys when you
-want those features on.
+Vercel reads `vercel.json`, which runs `npm run build`, which regenerates the
+tokens first. Set `DATABASE_URL`, `DIRECT_URL` and `BETTER_AUTH_SECRET`, then
+add `AI_GATEWAY_API_KEY`, Stripe and Resend keys when you want those features
+on.
 
 ## License
 

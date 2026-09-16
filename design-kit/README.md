@@ -108,3 +108,100 @@ tokens.motion.durations[2];    // 420 (ms)
 tokens.direction.key;          // "editorial"
 tokens.fonts.ogFile;           // "instrument-serif-400.ttf"
 ```
+
+## The primitives
+
+All in `src/components/ui`, all hand-rolled, all yours to edit. No library.
+
+`Button` (primary | secondary | ghost | outline | link | danger, sizes sm to xl,
+`asChild` to make a link look like a button, `loading`), `Card` (+ `CardHeader`,
+`CardTitle`, `CardDescription`, `CardFooter`, `interactive`, `tone`), `Badge`
+(tones, `variant="sticker"`), `Input`, `Textarea`, `Label`, `Field` (label plus
+control plus hint or error, wired to `aria-describedby`), `FormMessage`,
+`Select`, `Switch`, `Tabs`, `Dialog` (native `<dialog>`, `variant="sheet"` for
+the mobile menu), `Toast` (`toast()` from anywhere), `Tooltip`, `Skeleton`,
+`SkeletonText`, `EmptyState`, `Table` (`TH`/`TD` take `align="right"`, which
+also applies `numeric`), `Avatar`.
+
+`EmptyState` requires `body` and `action`. That is deliberate: an empty state
+that does not say what will appear and how to cause it will not compile.
+
+Brand marks live in `src/components/brand`: `Wordmark` and `Monogram`, both
+driven by `brand.wordmark`.
+
+## The sections
+
+`src/components/sections` exports `Hero`, `ProductFrame`, `ProductFrameSection`,
+`Bento`, `Steps`, `Stats`, `Compare`, `Pricing`, `Faq`, `CtaBand`, `Footer` and
+`SiteHeader`. Every one of them is a server component wrapped by `Section`,
+which owns the rhythm, the container width, the background tone and the
+entrance. Pass content in; they never fetch.
+
+`Hero` is four different compositions, not one layout with a prop: the brand's
+direction picks a magazine cover, a keynote, a poster or a book page. Give it a
+`frame` and your product is in the first screen.
+
+## Motion
+
+```tsx
+import { Reveal, Stagger, StaggerItem, SplitText, Counter, Marquee } from "@/components/motion";
+```
+
+`Reveal` wraps anything that should enter. `Stagger` plus `StaggerItem` makes a
+list arrive one item at a time. `SplitText` animates a headline by word.
+`Counter` counts a number up and server-renders the final value. `Magnetic`,
+`Spotlight` and `TiltCard` are pointer effects that no-op on touch and on the
+directions that do not use them. `AuroraMesh` and `Grain` are decorative and
+`aria-hidden`.
+
+Import `StaggerItem` by name. `Stagger.Item` throws in a server component: you
+cannot read a property off a client module from the server.
+
+## Four composition recipes
+
+**Landing.** `Hero` with a `ProductFrame` around feature 1, then `Bento` (what
+it does), `Steps` (how it works), `Stats` (what is true), `Faq`, `CtaBand`.
+Five sections minimum, and the frame is not optional.
+
+**Feature page.** `Section` with a `SectionHeader`, the feature's own component
+with real data, `Steps` for the workflow, `CtaBand`. No pricing.
+
+**Comparison.** The `Compare` section per incumbent, then `CtaBand`. The table
+lives in the section, so the same comparison can sit on the landing page.
+
+**Pricing.** `Pricing` with the plans and an `action` per plan, then `Faq`. The
+amount is a string from content and ultimately from Stripe. Never hardcode a
+number in a component.
+
+## How to add a feature
+
+1. Model in `prisma/schema.prisma`, then a migration.
+2. Rows in `src/content/demo.ts`, then `prisma/seed.ts`. The same rows feed the
+   marketing frame and the signed-in dashboard, so they must be plausible.
+3. A server component that renders those rows, taking the rows as a prop, like
+   `src/components/snippet-list.tsx`. It is used twice: in `(app)` with the real
+   database rows and a delete action, and inside `ProductFrame` with the demo
+   rows and no action.
+4. A Server Action with the auth check inside it.
+5. A page under `(app)`, with `PageHeader`, the form in a `Card`, the list, and
+   an `EmptyState`.
+6. One line in `src/content/routes.ts` if it is public.
+
+## Anti-patterns
+
+- A hex code, an `rgb()`, or a Tailwind palette class in a component. There is
+  no palette; it compiles to nothing and you get invisible text.
+- `text-white`. Use `text-on-accent` on an accent ground, `text-ink` otherwise.
+- `leading-*`, `tracking-*` or `font-bold` beside a type step.
+- A `div` with a hand-rolled border and padding where `Card` exists.
+- An empty state that says "No data".
+- A spinner where a `Skeleton` belongs.
+- `motion.div`. Use `m.div`, or the lazy feature bundle is undone.
+- Animating `width`, `height`, `top`, `left`, `filter` or `box-shadow`.
+- A scroll event listener. Use a CSS scroll timeline or `Reveal`.
+- A theme key named after a CSS keyword. `--spacing-block` emits
+  `.inline-block { inline-size: ... }`, which silently beats Tailwind's own
+  `display: inline-block` and collapses every inline-block on the page.
+- A viewport threshold above 0 on a direction whose entrance is a mask. A
+  clipped element reports an intersection ratio of 0 forever, so it never
+  animates, never un-clips, and takes everything inside it down with it.

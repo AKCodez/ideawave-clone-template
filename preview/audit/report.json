@@ -1,0 +1,204 @@
+{
+  "pass": "1",
+  "ok": true,
+  "score": 88,
+  "base": "http://localhost:3100",
+  "counts": {
+    "errors": 0,
+    "warnings": 12,
+    "screenshots": 15
+  },
+  "findings": [
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/",
+      "width": 1024,
+      "detail": "a is 81x38, needs 40px - \"Compare\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/",
+      "width": 1024,
+      "detail": "a is 66x38, needs 40px - \"Pricing\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/premium",
+      "width": 1024,
+      "detail": "a is 81x38, needs 40px - \"Compare\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/premium",
+      "width": 1024,
+      "detail": "a is 66x38, needs 40px - \"Pricing\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/compare/spreadsheets",
+      "width": 1024,
+      "detail": "a is 81x38, needs 40px - \"Compare\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/compare/spreadsheets",
+      "width": 1024,
+      "detail": "a is 66x38, needs 40px - \"Pricing\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/",
+      "width": 1440,
+      "detail": "a is 81x38, needs 40px - \"Compare\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/",
+      "width": 1440,
+      "detail": "a is 66x38, needs 40px - \"Pricing\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/premium",
+      "width": 1440,
+      "detail": "a is 81x38, needs 40px - \"Compare\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/premium",
+      "width": 1440,
+      "detail": "a is 66x38, needs 40px - \"Pricing\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/compare/spreadsheets",
+      "width": 1440,
+      "detail": "a is 81x38, needs 40px - \"Compare\""
+    },
+    {
+      "severity": "warn",
+      "rule": "tap-target",
+      "page": "/compare/spreadsheets",
+      "width": 1440,
+      "detail": "a is 66x38, needs 40px - \"Pricing\""
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "pass1-home-390",
+      "file": "preview\\audit\\pass1-home-390.png",
+      "page": "/",
+      "width": 390,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-premium-390",
+      "file": "preview\\audit\\pass1-premium-390.png",
+      "page": "/premium",
+      "width": 390,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-compare-spreadsheets-390",
+      "file": "preview\\audit\\pass1-compare-spreadsheets-390.png",
+      "page": "/compare/spreadsheets",
+      "width": 390,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-sign-in-390",
+      "file": "preview\\audit\\pass1-sign-in-390.png",
+      "page": "/sign-in",
+      "width": 390,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-not-a-page-390",
+      "file": "preview\\audit\\pass1-not-a-page-390.png",
+      "page": "/not-a-page",
+      "width": 390,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-home-1024",
+      "file": "preview\\audit\\pass1-home-1024.png",
+      "page": "/",
+      "width": 1024,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-premium-1024",
+      "file": "preview\\audit\\pass1-premium-1024.png",
+      "page": "/premium",
+      "width": 1024,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-compare-spreadsheets-1024",
+      "file": "preview\\audit\\pass1-compare-spreadsheets-1024.png",
+      "page": "/compare/spreadsheets",
+      "width": 1024,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-sign-in-1024",
+      "file": "preview\\audit\\pass1-sign-in-1024.png",
+      "page": "/sign-in",
+      "width": 1024,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-not-a-page-1024",
+      "file": "preview\\audit\\pass1-not-a-page-1024.png",
+      "page": "/not-a-page",
+      "width": 1024,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-home-1440",
+      "file": "preview\\audit\\pass1-home-1440.png",
+      "page": "/",
+      "width": 1440,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-premium-1440",
+      "file": "preview\\audit\\pass1-premium-1440.png",
+      "page": "/premium",
+      "width": 1440,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-compare-spreadsheets-1440",
+      "file": "preview\\audit\\pass1-compare-spreadsheets-1440.png",
+      "page": "/compare/spreadsheets",
+      "width": 1440,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-sign-in-1440",
+      "file": "preview\\audit\\pass1-sign-in-1440.png",
+      "page": "/sign-in",
+      "width": 1440,
+      "pass": "1"
+    },
+    {
+      "name": "pass1-not-a-page-1440",
+      "file": "preview\\audit\\pass1-not-a-page-1440.png",
+      "page": "/not-a-page",
+      "width": 1440,
+      "pass": "1"
+    }
+  ]
+}

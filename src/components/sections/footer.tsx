@@ -47,7 +47,7 @@ export function IdeaWaveBadge(): ReactElement {
       rel="noopener"
       className={cn(
         buttonClasses("ghost", "sm"),
-        "h-auto gap-2 px-0 text-caption text-muted hover:bg-transparent hover:text-ink",
+        "min-h-10 gap-2 px-0 text-caption text-muted hover:bg-transparent hover:text-ink",
       )}
     >
       <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-accent" />

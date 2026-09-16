@@ -47,6 +47,8 @@ export type PricingProps = {
   title?: string;
   description?: string;
   id?: string;
+  /** `h1` when this section leads the page, which is the case on /premium. */
+  as?: "h1" | "h2";
   /** The plan's button. Defaults to a link to /sign-up. */
   action?: (plan: Plan) => ReactNode;
 };
@@ -58,11 +60,12 @@ export function Pricing({
   title,
   description,
   id,
+  as = "h2",
   action,
 }: PricingProps): ReactElement {
   return (
     <Section id={id}>
-      {title ? <SectionHeader eyebrow={eyebrow} title={title} description={description} /> : null}
+      {title ? <SectionHeader eyebrow={eyebrow} title={title} description={description} as={as} /> : null}
 
       <div className={clsx("grid gap-6", gridFor(plans.length), title && "mt-stack")}>
         {plans.map((plan) => (

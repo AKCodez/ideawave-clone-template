@@ -20,7 +20,7 @@ export default function SignUpPage(): ReactElement {
         Already have one?{" "}
         <Link
           href="/sign-in"
-          className="text-ink no-underline transition-colors duration-(--duration-1) hover:text-accent"
+          className="btn btn-link inline-flex min-h-6 items-center text-ink no-underline hover:text-accent"
         >
           Sign in
         </Link>

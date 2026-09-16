@@ -51,6 +51,7 @@ export default async function PremiumPage(): Promise<ReactElement> {
         plans={plans}
         note={pricingNote}
         eyebrow="Pricing"
+        as="h1"
         title="One plan, one price"
         description="Start free. Upgrade when the free plan stops being enough."
         action={actionFor}

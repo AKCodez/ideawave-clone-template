@@ -20,7 +20,7 @@ export default function ForgotPasswordPage(): ReactElement {
       <p className="text-small text-muted">
         <Link
           href="/sign-in"
-          className="no-underline transition-colors duration-(--duration-1) hover:text-ink"
+          className="btn btn-link inline-flex min-h-6 items-center no-underline hover:text-ink"
         >
           Back to sign in
         </Link>

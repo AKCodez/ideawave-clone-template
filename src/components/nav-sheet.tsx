@@ -53,7 +53,7 @@ export function NavLinks({
             href={item.href}
             aria-current={active ? "page" : undefined}
             className={clsx(
-              "btn btn-ghost inline-flex items-center gap-2 rounded-input px-3 py-2 text-small font-medium no-underline",
+              "btn btn-ghost inline-flex min-h-10 items-center gap-2 rounded-input px-3 py-2 text-small font-medium no-underline",
               orientation === "column" && "justify-start",
               active ? "bg-surface text-ink" : "text-muted hover:bg-surface hover:text-ink",
             )}
