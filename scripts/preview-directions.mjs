@@ -29,6 +29,16 @@ const PAGES = ["/", "/sign-in", "/compare", "!/not-a-page"];
 const WIDTHS = [390, 1024, 1440];
 
 const ALL_PRESETS = ["editorial", "luminous", "brutal", "craft", "editorial-light", "luminous-light"];
+
+/** The product name each preset renders, used to prove the right build is up. */
+const PRESET_NAMES = {
+  editorial: "Longform",
+  luminous: "Flightdeck",
+  brutal: "Ledgerpunk",
+  craft: "Kilnhouse",
+  "editorial-light": "Longform",
+  "luminous-light": "Flightdeck",
+};
 const presets = process.argv.slice(2).filter((arg) => ALL_PRESETS.includes(arg));
 const targets = presets.length > 0 ? presets : ALL_PRESETS;
 
@@ -41,18 +51,70 @@ function fail(message) {
   process.exit(1);
 }
 
-async function waitForServer(timeoutMs = 60000) {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      const response = await fetch(BASE, { headers: { accept: "text/html" } });
-      if (response.status < 500) return true;
-    } catch {
-      /* not up yet */
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function isListening() {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1500);
+    const response = await fetch(BASE, { headers: { accept: "text/html" }, signal: controller.signal });
+    clearTimeout(timer);
+    return response.status < 600;
+  } catch {
+    return false;
+  }
+}
+
+function killPort() {
+  if (process.platform === "win32") {
+    spawnSync(
+      "powershell",
+      [
+        "-NoProfile",
+        "-Command",
+        `Get-NetTCPConnection -LocalPort ${PORT} -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }`,
+      ],
+      { encoding: "utf8" },
+    );
+  } else {
+    spawnSync("sh", ["-c", `lsof -ti tcp:${PORT} | xargs -r kill -9`], { encoding: "utf8" });
+  }
+}
+
+/**
+ * Nothing else may be listening on the port before a preset starts.
+ *
+ * A server left over from an earlier run answers on the same port, `next build`
+ * then replaces the output underneath it, and the screenshots come out as the
+ * PREVIOUS brand with no stylesheet at all - which is exactly what happened the
+ * first time this script ran across all six.
+ */
+async function ensurePortFree() {
+  if (!(await isListening())) return true;
+  killPort();
+  for (let i = 0; i < 20; i += 1) {
+    await sleep(500);
+    if (!(await isListening())) return true;
   }
   return false;
+}
+
+async function waitForServer(timeoutMs = 90000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await isListening()) return true;
+    await sleep(500);
+  }
+  return false;
+}
+
+/** The server answering must be serving THIS preset, not a leftover one. */
+async function servesPreset(expectedName) {
+  const response = await fetch(BASE, { headers: { accept: "text/html" } });
+  const html = await response.text();
+  const stylesheet = /<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/.exec(html)?.[1];
+  const cssOk = stylesheet ? (await fetch(new URL(stylesheet, BASE))).status === 200 : false;
+  return { nameOk: html.includes(expectedName), cssOk, stylesheet: stylesheet ?? "none" };
 }
 
 /** The facts the summary reports, read out of the generated CSS. */
@@ -118,6 +180,10 @@ async function axeAndOg(label) {
 async function previewOne(preset) {
   console.log(`\n=== ${preset} ===`);
 
+  if (!(await ensurePortFree())) {
+    fail(`something is still listening on ${BASE}; stop it before previewing`);
+  }
+
   const set = run("npx", ["tsx", "scripts/brand-set.ts", preset], { stdio: "inherit" });
   if (set.status !== 0) fail(`could not set the brand to ${preset}`);
 
@@ -134,6 +200,14 @@ async function previewOne(preset) {
   try {
     if (!(await waitForServer())) fail(`${preset} server never answered on ${BASE}`);
 
+    const served = await servesPreset(PRESET_NAMES[preset]);
+    if (!served.nameOk || !served.cssOk) {
+      fail(
+        `${BASE} is not serving the ${preset} build: name ${served.nameOk ? "ok" : "MISSING"}, ` +
+          `stylesheet ${served.cssOk ? "ok" : `MISSING (${served.stylesheet})`}`,
+      );
+    }
+
     const shot = run("node", ["scripts/shoot.mjs"], {
       stdio: "inherit",
       env: {
@@ -141,7 +215,7 @@ async function previewOne(preset) {
         BASE,
         TAG: preset,
         OUT: "preview/shots",
-        PAGES: JSON.stringify(PAGES.map((p) => p.replace(/^!/, ""))),
+        PAGES: JSON.stringify(PAGES),
         WIDTHS: JSON.stringify(WIDTHS),
       },
     });
@@ -164,17 +238,11 @@ async function previewOne(preset) {
       ),
     };
   } finally {
+    /* `next start` runs through a shell, so killing the shell leaves the server
+       holding the port. Kill by port, then wait until it is genuinely free. */
     server.kill();
-    /* next start spawns through a shell on Windows, so the child can outlive
-       the shell. Free the port explicitly before the next preset builds. */
-    if (process.platform === "win32") {
-      run("powershell", [
-        "-NoProfile",
-        "-Command",
-        `Get-NetTCPConnection -LocalPort ${PORT} -State Listen -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }`,
-      ]);
-    }
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    killPort();
+    await sleep(1000);
   }
 }
 

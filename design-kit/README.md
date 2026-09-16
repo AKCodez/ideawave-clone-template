@@ -32,7 +32,7 @@ component.** There is no Tailwind palette to write one with: the generated
 | `ink` | `text-ink` | Primary text. 12:1 on canvas, guaranteed |
 | `muted` | `text-muted` | Secondary text. 4.6:1 on surface, guaranteed |
 | `faint` | `text-faint` | Timestamps, captions, disabled text. 3:1 |
-| `accent` | `bg-accent` `text-accent` | The one colour the brand owns. 3:1 on canvas |
+| `accent` | `bg-accent` `text-accent` | The one colour the brand owns. 4.5:1 on canvas and on surface, because the kit sets small text in it |
 | `accent-hover` | `hover:bg-accent-hover` | The accent's hover state |
 | `accent-soft` | `bg-accent-soft` | Tinted backgrounds, badges, selected rows |
 | `on-accent` | `text-on-accent` | Text on `accent`. 4.5:1 on it, guaranteed |

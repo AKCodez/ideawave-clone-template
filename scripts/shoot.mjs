@@ -32,15 +32,29 @@ for (const width of WIDTHS) {
   const page = await context.newPage();
   const problems = [];
   page.on("console", (message) => {
-    if (message.type() === "error") problems.push(`console: ${message.text().slice(0, 200)}`);
+    const text = message.text();
+    if (message.type() === "error" && !(text.includes("404") && expected404.size > 0)) {
+      problems.push(`console: ${text.slice(0, 200)}`);
+    }
   });
   page.on("pageerror", (error) => problems.push(`pageerror: ${String(error).slice(0, 200)}`));
+  const expected404 = new Set(
+    PAGES.filter((p) => p.startsWith("!")).map((p) => BASE + p.slice(1)),
+  );
   page.on("response", (response) => {
-    if (response.status() >= 400) problems.push(`${response.status()} ${response.url().slice(0, 140)}`);
+    if (response.status() >= 400 && !expected404.has(response.url())) {
+      problems.push(`${response.status()} ${response.url().slice(0, 140)}`);
+    }
   });
 
-  for (const path of PAGES) {
+  for (const rawPath of PAGES) {
+    /* "!/nope" means this page is supposed to answer 404, which is how the
+       not-found page gets photographed without counting as a failure. */
+    const expect404 = rawPath.startsWith("!");
+    const path = expect404 ? rawPath.slice(1) : rawPath;
     const response = await page.goto(BASE + path, { waitUntil: "networkidle", timeout: 45000 });
+    const status = response?.status() ?? 0;
+    const statusOk = expect404 ? status === 404 : status < 400;
 
     /* Walk the page twice so every whileInView section has actually entered.
        Twice, because a section that reveals with a clip-path hides the sections
@@ -79,8 +93,8 @@ for (const width of WIDTHS) {
     const notes = [overflow ? "OVERFLOW" : "", hidden > 0 ? `${hidden} still hidden` : ""]
       .filter(Boolean)
       .join(" ");
-    if (overflow || hidden > 0) failures += 1;
-    console.log(`${response?.status()} ${width} ${path} -> ${file}${notes ? `  ${notes}` : ""}`);
+    if (overflow || hidden > 0 || !statusOk) failures += 1;
+    console.log(`${status} ${width} ${path} -> ${file}${notes ? `  ${notes}` : ""}${statusOk ? "" : "  UNEXPECTED STATUS"}`);
   }
 
   for (const problem of [...new Set(problems)]) {

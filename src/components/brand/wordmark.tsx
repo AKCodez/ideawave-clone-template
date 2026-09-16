@@ -1,6 +1,6 @@
 import type { CSSProperties, ElementType, ReactElement } from "react";
 import { clsx } from "clsx";
-import brand from "@/brand";
+import { tokens } from "@/design/tokens";
 import type { WordmarkTracking } from "@/design/types";
 import { appName } from "@/lib/env";
 
@@ -33,17 +33,24 @@ export type WordmarkProps = {
   className?: string;
 };
 
+/* Read the wordmark through `tokens.brand`, never through the default import.
+   `src/brand.ts` is written `as const`, so `brand.wordmark.case` is the literal
+   this build happens to use and comparing it against any other value is a type
+   error - which means a component written that way compiles for one brand and
+   fails `tsc` for every other one. `tokens.brand` is typed `Brand`. */
+const wordmark = tokens.brand.wordmark;
+
 function cased(value: string): string {
-  if (brand.wordmark.case === "lower") return value.toLowerCase();
-  if (brand.wordmark.case === "upper") return value.toUpperCase();
+  if (wordmark.case === "lower") return value.toLowerCase();
+  if (wordmark.case === "upper") return value.toUpperCase();
   return value;
 }
 
 export function Wordmark({ size = "md", as = "span", className }: WordmarkProps): ReactElement {
   const Tag: ElementType = as;
   const style: CSSProperties = {
-    letterSpacing: TRACKING[brand.wordmark.tracking],
-    fontWeight: brand.wordmark.weight,
+    letterSpacing: TRACKING[wordmark.tracking],
+    fontWeight: wordmark.weight,
   };
 
   return (

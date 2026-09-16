@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { COLOR_TOKENS } from "./color";
@@ -79,5 +79,42 @@ describe("every preset builds a shippable palette", () => {
   it("covers all four directions", () => {
     const covered = new Set(PRESET_KEYS.map((key) => PRESETS[key].direction));
     expect([...covered].sort()).toEqual([...DIRECTIONS].sort());
+  });
+});
+
+/**
+ * `src/brand.ts` is written `as const satisfies Brand`, so a field read off the
+ * default import is the literal THIS build happens to use. Comparing it against
+ * any other value is a type error, which means a component written that way
+ * compiles here and fails `tsc` for every other brand IdeaWave writes. The
+ * widened value is `tokens.brand`.
+ *
+ * This cost a whole build: switching the preset to brutal turned two innocent
+ * comparisons into "types '\"light\"' and '\"dark\"' have no overlap".
+ */
+describe("no component compares a field of the narrow brand import", () => {
+  const NARROW = /(?<!tokens\.)brand\.(?:scheme|direction)\s*[=!]==|(?<!tokens\.)brand\.(?:wordmark|palette|type|motion)\.[A-Za-z]+\s*[=!]==/;
+
+  function walk(dir: string): string[] {
+    return readdirSync(dir).flatMap((entry) => {
+      const full = join(dir, entry);
+      if (entry === "generated" || entry === "node_modules") return [];
+      if (statSync(full).isDirectory()) return walk(full);
+      return /\.tsx?$/.test(entry) && !/\.test\.tsx?$/.test(entry) ? [full] : [];
+    });
+  }
+
+  it("reads brand fields it branches on through tokens.brand", () => {
+    const offenders: string[] = [];
+    for (const file of walk(join(process.cwd(), "src"))) {
+      const source = readFileSync(file, "utf8");
+      for (const [index, line] of source.split("\n").entries()) {
+        if (line.trimStart().startsWith("*") || line.trimStart().startsWith("//")) continue;
+        if (NARROW.test(line)) {
+          offenders.push(`${file.replace(process.cwd(), "").slice(1)}:${index + 1} ${line.trim().slice(0, 80)}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });

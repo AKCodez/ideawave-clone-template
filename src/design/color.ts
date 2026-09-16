@@ -36,13 +36,22 @@ export type ColorToken = (typeof COLOR_TOKENS)[number];
 export type Swatch = { color: Oklch; alpha?: number };
 export type Ramp = Record<ColorToken, Swatch>;
 
-/** The floors asserted at generation. Failing any of them fails `brand:gen`. */
+/**
+ * The floors asserted at generation. Failing any of them fails `brand:gen`.
+ *
+ * The accent's floor is 4.5, not the 3 a graphical element would need, because
+ * the kit uses the accent as SMALL TEXT: section eyebrows, the link button
+ * variant, the stat rules. At 3:1 an eyebrow measured 4.46:1 and axe called it
+ * on sight. The focus ring keeps 3, which is the right floor for a non-text
+ * indicator.
+ */
 export const CONTRAST_FLOORS = {
   inkOnCanvas: 12,
   mutedOnSurface: 4.6,
-  accentOnCanvas: 3,
+  accentOnCanvas: 4.5,
   onAccentOnAccent: 4.5,
   statusOnSurface: 4.5,
+  faintOnSurface: 4.5,
   focusOnCanvas: 3,
 } as const;
 
@@ -204,6 +213,19 @@ export function solveLightness(options: SolveOptions): Oklch {
   return best;
 }
 
+/** Blend two colours in OKLCH. `t` is how much of `b` ends up in the result. */
+export function mixOklch(a: Oklch, b: Oklch, t: number): Oklch {
+  const amount = clamp(t, 0, 1);
+  let deltaHue = normalizeHue(b.h) - normalizeHue(a.h);
+  if (deltaHue > 180) deltaHue -= 360;
+  if (deltaHue < -180) deltaHue += 360;
+  return clipToGamut({
+    l: a.l + (b.l - a.l) * amount,
+    c: a.c + (b.c - a.c) * amount,
+    h: normalizeHue(a.h + deltaHue * amount),
+  });
+}
+
 /** Nine swatches down one hue, for brand previews and the theater's reveal. */
 export function oklchRamp(hue: number, chroma: number): Oklch[] {
   return [0.96, 0.88, 0.78, 0.68, 0.58, 0.48, 0.38, 0.26, 0.16].map((l) =>
@@ -292,27 +314,40 @@ export function solveAccentPair(input: {
   hue: number;
   chroma: number;
   canvas: Oklch;
+  /** Cards and panels. On a dark scheme this is the harder background of the
+   *  two, so the accent has to clear its floor here as well. */
+  surface: Oklch;
   start: number;
   toward: "lighter" | "darker";
 }): AccentPair {
-  const { hue, chroma, canvas, start, toward } = input;
+  const { hue, chroma, canvas, surface, start, toward } = input;
   const direction = toward === "lighter" ? 0.01 : -0.01;
+  const clearsBackgrounds = (colour: Oklch): boolean =>
+    contrast(colour, canvas) >= CONTRAST_FLOORS.accentOnCanvas &&
+    contrast(colour, surface) >= CONTRAST_FLOORS.accentOnCanvas;
+
+  const harder = contrast({ l: start, c: chroma, h: hue }, canvas) <= contrast({ l: start, c: chroma, h: hue }, surface)
+    ? canvas
+    : surface;
 
   const first = solveLightness({
     hue,
     chroma,
-    against: canvas,
+    against: harder,
     min: CONTRAST_FLOORS.accentOnCanvas,
     start,
     toward,
   });
 
-  let best: AccentPair = { accent: first, onAccent: bestInkFor(first, hue, chroma) };
+  const start0 = clearsBackgrounds(first)
+    ? first
+    : solveLightness({ hue, chroma, against: surface, min: CONTRAST_FLOORS.accentOnCanvas, start, toward });
+  let best: AccentPair = { accent: start0, onAccent: bestInkFor(start0, hue, chroma) };
   let bestRatio = contrast(best.onAccent, best.accent);
 
   for (let i = 1; i <= 45; i += 1) {
     const accent = clipToGamut({ l: clamp(first.l + direction * i, 0.05, 0.985), c: chroma, h: hue });
-    if (contrast(accent, canvas) < CONTRAST_FLOORS.accentOnCanvas) continue;
+    if (!clearsBackgrounds(accent)) continue;
     const onAccent = bestInkFor(accent, hue, chroma);
     const ratio = contrast(onAccent, accent);
     if (ratio >= CONTRAST_FLOORS.onAccentOnAccent) return { accent, onAccent };
@@ -349,27 +384,11 @@ export function buildRamp(input: RampInput): Ramp {
   const lineStrong = neutral(shape.canvasL + shape.lineStrongDelta, 1.4);
   const ink = neutral(shape.inkL, 0.8);
 
-  const muted = solveLightness({
-    hue: nh,
-    chroma: nc * 1.6,
-    against: surface,
-    min: CONTRAST_FLOORS.mutedOnSurface,
-    start: shape.mutedStart,
-    toward,
-  });
-  const faint = solveLightness({
-    hue: nh,
-    chroma: nc * 1.4,
-    against: surface,
-    min: 3,
-    start: shape.faintStart,
-    toward,
-  });
-
   const { accent, onAccent } = solveAccentPair({
     hue: accentHue,
     chroma: ac,
     canvas,
+    surface,
     start: shape.accentStart,
     toward,
   });
@@ -384,15 +403,69 @@ export function buildRamp(input: RampInput): Ramp {
     h: accentHue,
   });
 
-  const status = (hue: number): Oklch =>
-    solveLightness({
+  /**
+   * Secondary text does not only sit on `surface`. It sits on cards
+   * (`elevated`) and on the tinted panels the auth split and the CTA band use
+   * (`accent-soft`), and axe reads whichever is actually behind it. Solving
+   * against the hardest of the three is the difference between a guarantee and
+   * a guess: muted on accent-soft measured 4.49:1 before this.
+   */
+  const textGrounds = [surface, elevated, accentSoft];
+  const hardestFor = (colour: Oklch): Oklch =>
+    textGrounds.reduce((worst, ground) =>
+      contrast(colour, ground) < contrast(colour, worst) ? ground : worst,
+    );
+
+  const solveText = (chromaScale: number, min: number, start: number): Oklch => {
+    let solved = solveLightness({ hue: nh, chroma: nc * chromaScale, against: surface, min, start, toward });
+    for (let i = 0; i < 2; i += 1) {
+      solved = solveLightness({
+        hue: nh,
+        chroma: nc * chromaScale,
+        against: hardestFor(solved),
+        min,
+        start: solved.l,
+        toward,
+      });
+    }
+    return solved;
+  };
+
+  const muted = solveText(1.6, CONTRAST_FLOORS.mutedOnSurface, shape.mutedStart);
+  /* `faint` is tertiary text, not decoration: timestamps and notes are read, so
+     it clears 4.5:1 too. Its lighter starting point is what keeps it visibly
+     quieter than `muted` rather than a second name for the same colour. */
+  const faint = solveText(1.4, CONTRAST_FLOORS.faintOnSurface, shape.faintStart);
+
+  /**
+   * A status colour is usually drawn as text on a 10 percent wash of itself
+   * (the Badge tones), so the background it must clear is not `elevated` but
+   * `elevated` tinted by the colour being solved. Two passes converge: walking
+   * the lightness only ever increases contrast, so it cannot oscillate.
+   */
+  const status = (hue: number): Oklch => {
+    const chroma = Math.max(0.1, Math.min(ac, 0.15));
+    const start = dark ? 0.72 : 0.58;
+    let solved = solveLightness({
       hue,
-      chroma: Math.max(0.1, Math.min(ac, 0.15)),
-      against: surface,
+      chroma,
+      against: elevated,
       min: CONTRAST_FLOORS.statusOnSurface,
-      start: dark ? 0.72 : 0.58,
+      start,
       toward,
     });
+    for (let i = 0; i < 2; i += 1) {
+      solved = solveLightness({
+        hue,
+        chroma,
+        against: mixOklch(elevated, solved, 0.12),
+        min: CONTRAST_FLOORS.statusOnSurface,
+        start: solved.l,
+        toward,
+      });
+    }
+    return solved;
+  };
 
   const focus = solveLightness({
     hue: accentHue,
@@ -427,8 +500,13 @@ export function buildRamp(input: RampInput): Ramp {
 export type ContrastReport = {
   inkOnCanvas: number;
   mutedOnSurface: number;
+  /** The worst of surface, elevated and accent-soft, which is what a reader sees. */
+  mutedOnWorst: number;
+  faintOnWorst: number;
   accentOnCanvas: number;
+  accentOnSurface: number;
   onAccentOnAccent: number;
+  /** Each status colour on a 12 percent wash of itself over elevated. */
   positiveOnSurface: number;
   warningOnSurface: number;
   criticalOnSurface: number;
@@ -437,14 +515,21 @@ export type ContrastReport = {
 
 /** Every ratio the generator asserts, measured on a built ramp. */
 export function measureContrast(ramp: Ramp): ContrastReport {
+  const grounds = [ramp.surface.color, ramp.elevated.color, ramp["accent-soft"].color];
+  const worst = (colour: Oklch): number => Math.min(...grounds.map((ground) => contrast(colour, ground)));
+  const onTint = (colour: Oklch): number =>
+    contrast(colour, mixOklch(ramp.elevated.color, colour, 0.12));
   return {
     inkOnCanvas: contrast(ramp.ink.color, ramp.canvas.color),
     mutedOnSurface: contrast(ramp.muted.color, ramp.surface.color),
+    mutedOnWorst: worst(ramp.muted.color),
+    faintOnWorst: worst(ramp.faint.color),
     accentOnCanvas: contrast(ramp.accent.color, ramp.canvas.color),
+    accentOnSurface: contrast(ramp.accent.color, ramp.surface.color),
     onAccentOnAccent: contrast(ramp["on-accent"].color, ramp.accent.color),
-    positiveOnSurface: contrast(ramp.positive.color, ramp.surface.color),
-    warningOnSurface: contrast(ramp.warning.color, ramp.surface.color),
-    criticalOnSurface: contrast(ramp.critical.color, ramp.surface.color),
+    positiveOnSurface: onTint(ramp.positive.color),
+    warningOnSurface: onTint(ramp.warning.color),
+    criticalOnSurface: onTint(ramp.critical.color),
     focusOnCanvas: contrast(ramp.focus.color, ramp.canvas.color),
   };
 }
@@ -455,11 +540,14 @@ export function contrastFailures(ramp: Ramp): string[] {
   const checks: [keyof ContrastReport, number, string][] = [
     ["inkOnCanvas", CONTRAST_FLOORS.inkOnCanvas, "ink on canvas"],
     ["mutedOnSurface", CONTRAST_FLOORS.mutedOnSurface, "muted on surface"],
+    ["mutedOnWorst", CONTRAST_FLOORS.mutedOnSurface, "muted on its worst ground"],
+    ["faintOnWorst", CONTRAST_FLOORS.faintOnSurface, "faint on its worst ground"],
     ["accentOnCanvas", CONTRAST_FLOORS.accentOnCanvas, "accent on canvas"],
+    ["accentOnSurface", CONTRAST_FLOORS.accentOnCanvas, "accent on surface"],
     ["onAccentOnAccent", CONTRAST_FLOORS.onAccentOnAccent, "on-accent on accent"],
-    ["positiveOnSurface", CONTRAST_FLOORS.statusOnSurface, "positive on surface"],
-    ["warningOnSurface", CONTRAST_FLOORS.statusOnSurface, "warning on surface"],
-    ["criticalOnSurface", CONTRAST_FLOORS.statusOnSurface, "critical on surface"],
+    ["positiveOnSurface", CONTRAST_FLOORS.statusOnSurface, "positive on its own tint"],
+    ["warningOnSurface", CONTRAST_FLOORS.statusOnSurface, "warning on its own tint"],
+    ["criticalOnSurface", CONTRAST_FLOORS.statusOnSurface, "critical on its own tint"],
     ["focusOnCanvas", CONTRAST_FLOORS.focusOnCanvas, "focus on canvas"],
   ];
   return checks

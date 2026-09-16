@@ -18,7 +18,9 @@ export default async function SettingsPage(): Promise<ReactElement> {
   const user = await getCurrentUser();
   if (!user) redirect("/sign-in");
 
-  const scheme = brand.scheme === "dark" ? "Dark" : "Light";
+  /* `tokens.brand` is typed `Brand`; the default import is the literal this
+     build happens to use, so comparing it fails tsc for every other brand. */
+  const scheme = tokens.brand.scheme === "dark" ? "Dark" : "Light";
 
   return (
     <div className="flex flex-col gap-stack">
