@@ -151,7 +151,29 @@ async function axeAndOg(label) {
 
   for (const path of ["/", "/sign-in"]) {
     await page.goto(BASE + path, { waitUntil: "networkidle" });
-    await page.waitForTimeout(800);
+    /* Judge the page once it has stopped moving. An entrance that is halfway
+       through is text at partial opacity, and axe scores that as a contrast
+       failure - which is how craft "failed" four times while the finished page
+       was clean. Walk it so everything enters, then wait for the last one. */
+    await page.evaluate(async () => {
+      const step = Math.round(window.innerHeight * 0.6);
+      for (let y = 0; y < document.body.scrollHeight; y += step) {
+        window.scrollTo(0, y);
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+      window.scrollTo(0, 0);
+      const moving = () =>
+        [...document.querySelectorAll("[data-reveal], [data-stagger-item], [data-split-unit]")].some(
+          (element) => {
+            const opacity = Number(getComputedStyle(element).opacity);
+            return opacity > 0.01 && opacity < 0.99;
+          },
+        );
+      for (let i = 0; i < 40 && moving(); i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 150));
+      }
+    });
+    await page.waitForTimeout(400);
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .analyze();

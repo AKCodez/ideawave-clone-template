@@ -5,12 +5,12 @@ out of the generated tokens, and every screenshot is of a production build.
 
 | Preset | Direction | Scheme | Display | Accent | Radius | Stroke | Reveal | OG | axe |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| editorial | editorial | dark | instrument-serif | oklch(0.75 0.1424 42) | 0.375rem | 1px | 640ms var(--ease-out-expo) | 37 KB | 1 serious |
+| editorial | editorial | dark | instrument-serif | oklch(0.75 0.1424 42) | 0.375rem | 1px | 640ms var(--ease-out-expo) | 37 KB | clean |
 | luminous | luminous | dark | space-grotesk | oklch(0.73 0.1489 232) | 1.125rem | 1px | 480ms var(--ease-spring) | 77 KB | clean |
-| brutal | brutal | light | bricolage-grotesque | oklch(0.52 0.1635 145) | 0rem | 2px | 288ms var(--ease-step) | 38 KB | 1 serious |
-| craft | craft | light | newsreader | oklch(0.53 0.1105 24) | 0.75rem | 1px | 616ms var(--ease-out-soft) | 42 KB | 2 serious |
-| editorial-light | editorial | light | fraunces | oklch(0.54 0.1424 42) | 0.375rem | 1px | 640ms var(--ease-out-expo) | 38 KB | 1 serious |
-| luminous-light | luminous | light | geist | oklch(0.53 0.1081 232) | 1.125rem | 1px | 480ms var(--ease-spring) | 82 KB | 1 serious |
+| brutal | brutal | light | bricolage-grotesque | oklch(0.52 0.1635 145) | 0rem | 2px | 288ms var(--ease-step) | 38 KB | clean |
+| craft | craft | light | newsreader | oklch(0.53 0.1105 24) | 0.75rem | 1px | 616ms var(--ease-out-soft) | 42 KB | clean |
+| editorial-light | editorial | light | fraunces | oklch(0.54 0.1424 42) | 0.375rem | 1px | 640ms var(--ease-out-expo) | 39 KB | clean |
+| luminous-light | luminous | light | geist | oklch(0.53 0.1081 232) | 1.125rem | 1px | 480ms var(--ease-spring) | 82 KB | clean |
 
 ## editorial
 
@@ -20,7 +20,7 @@ out of the generated tokens, and every screenshot is of a production build.
 - Display instrument-serif over inter-tight. Canvas oklch(0.155 0.012 62), accent oklch(0.75 0.1424 42).
 - Corners 0.375rem, rules 1px, entrance 640ms on var(--ease-out-expo).
 - OG card: 200 image/png, 37 KB - `preview/og/editorial.png`.
-- axe: /: color-contrast (serious) x2
+- axe: no serious or critical violations on / or /sign-in.
 
 
 Screenshots:
@@ -72,7 +72,7 @@ Screenshots:
 - Display bricolage-grotesque over manrope. Canvas oklch(0.995 0.0023 145), accent oklch(0.52 0.1635 145).
 - Corners 0rem, rules 2px, entrance 288ms on var(--ease-step).
 - OG card: 200 image/png, 38 KB - `preview/og/brutal.png`.
-- axe: /: color-contrast (serious) x4
+- axe: no serious or critical violations on / or /sign-in.
 
 
 Screenshots:
@@ -98,7 +98,7 @@ Screenshots:
 - Display newsreader over dm-sans. Canvas oklch(0.963 0.0192 62), accent oklch(0.53 0.1105 24).
 - Corners 0.75rem, rules 1px, entrance 616ms on var(--ease-out-soft).
 - OG card: 200 image/png, 42 KB - `preview/og/craft.png`.
-- axe: /: color-contrast (serious) x5; /sign-in: color-contrast (serious) x1
+- axe: no serious or critical violations on / or /sign-in.
 
 
 Screenshots:
@@ -123,8 +123,8 @@ Screenshots:
 - Direction editorial, scheme light, accent hue 42, motion lively.
 - Display fraunces over inter-tight. Canvas oklch(0.972 0.012 62), accent oklch(0.54 0.1424 42).
 - Corners 0.375rem, rules 1px, entrance 640ms on var(--ease-out-expo).
-- OG card: 200 image/png, 38 KB - `preview/og/editorial-light.png`.
-- axe: /: color-contrast (serious) x6
+- OG card: 200 image/png, 39 KB - `preview/og/editorial-light.png`.
+- axe: no serious or critical violations on / or /sign-in.
 
 
 Screenshots:
@@ -150,7 +150,7 @@ Screenshots:
 - Display geist over geist. Canvas oklch(0.974 0.0125 258), accent oklch(0.53 0.1081 232).
 - Corners 1.125rem, rules 1px, entrance 480ms on var(--ease-spring).
 - OG card: 200 image/png, 82 KB - `preview/og/luminous-light.png`.
-- axe: /: color-contrast (serious) x4
+- axe: no serious or critical violations on / or /sign-in.
 
 
 Screenshots:
