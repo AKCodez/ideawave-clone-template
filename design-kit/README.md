@@ -182,7 +182,11 @@ number in a component.
    `src/components/snippet-list.tsx`. It is used twice: in `(app)` with the real
    database rows and a delete action, and inside `ProductFrame` with the demo
    rows and no action.
-4. A Server Action with the auth check inside it.
+4. A Server Action with the auth check inside it. If the feature calls a model,
+   copy `summariseSnippet` in `src/app/(app)/dashboard/actions.ts`: the user's
+   text goes in `prompt` and never in `system`, the row is scoped by owner, and
+   the call returns `"degraded"` rather than throwing, so the page says the
+   summary is missing instead of showing an error for work that succeeded.
 5. A page under `(app)`, with `PageHeader`, the form in a `Card`, the list, and
    an `EmptyState`.
 6. One line in `src/content/routes.ts` if it is public.

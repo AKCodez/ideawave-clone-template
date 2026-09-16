@@ -60,7 +60,8 @@ export default async function DashboardPage(): Promise<ReactElement> {
         <CardHeader>
           <CardTitle>Add a snippet</CardTitle>
           <CardDescription>
-            Paste something long. The example loop stores it, then summarises it.
+            Paste something long. It saves straight away, and Summarise writes the
+            one-line version and the tags.
           </CardDescription>
         </CardHeader>
         <SnippetForm />
@@ -81,7 +82,7 @@ export default async function DashboardPage(): Promise<ReactElement> {
             }
           />
         ) : (
-          <SnippetList snippets={records} deleteAction={deleteSnippet} />
+          <SnippetList snippets={records} deleteAction={deleteSnippet} summarise />
         )}
       </section>
     </div>

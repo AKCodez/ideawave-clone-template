@@ -1,6 +1,7 @@
 import type { ReactElement } from "react";
 import { clsx } from "clsx";
 import { TrashIcon } from "@phosphor-icons/react/dist/ssr";
+import { SnippetSummarise } from "@/components/snippet-summarise";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TBody, TD, TH, THead, TR, Table } from "@/components/ui/table";
@@ -27,6 +28,8 @@ export type SnippetListProps = {
   snippets: readonly SnippetRow[];
   /** Given a server action, every row gets a delete button wired to it. */
   deleteAction?: (formData: FormData) => Promise<void>;
+  /** Shows the Summarise button on rows that have no summary yet. */
+  summarise?: boolean;
   /** `compact` drops the summary line, for the narrow marketing frame. */
   density?: "comfortable" | "compact";
   className?: string;
@@ -40,10 +43,12 @@ const dateFormat = new Intl.DateTimeFormat("en-GB", {
 export function SnippetList({
   snippets,
   deleteAction,
+  summarise = false,
   density = "comfortable",
   className,
 }: SnippetListProps): ReactElement {
   const compact = density === "compact";
+  const hasActions = Boolean(deleteAction) || summarise;
 
   return (
     <Table className={className}>
@@ -52,7 +57,7 @@ export function SnippetList({
           <TH>Snippet</TH>
           <TH>Status</TH>
           <TH align="right">Saved</TH>
-          {deleteAction ? (
+          {hasActions ? (
             <TH className="w-px">
               <span className="sr-only">Actions</span>
             </TH>
@@ -85,15 +90,20 @@ export function SnippetList({
             <TD align="right" className="whitespace-nowrap">
               {dateFormat.format(snippet.createdAt)}
             </TD>
-            {deleteAction ? (
+            {hasActions ? (
               <TD className="text-right">
-                <form action={deleteAction}>
-                  <input type="hidden" name="id" value={snippet.id} />
-                  <Button type="submit" variant="ghost" size="sm">
-                    <TrashIcon aria-hidden="true" weight="regular" className="size-4" />
-                    <span className="sr-only sm:not-sr-only">Delete</span>
-                  </Button>
-                </form>
+                <div className="flex items-start justify-end gap-1">
+                  {summarise && !snippet.summary ? <SnippetSummarise id={snippet.id} /> : null}
+                  {deleteAction ? (
+                    <form action={deleteAction}>
+                      <input type="hidden" name="id" value={snippet.id} />
+                      <Button type="submit" variant="ghost" size="sm">
+                        <TrashIcon aria-hidden="true" weight="regular" className="size-4" />
+                        <span className="sr-only sm:not-sr-only">Delete</span>
+                      </Button>
+                    </form>
+                  ) : null}
+                </div>
               </TD>
             ) : null}
           </TR>
