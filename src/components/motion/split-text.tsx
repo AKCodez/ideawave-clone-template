@@ -18,7 +18,7 @@
 import { m, useReducedMotion, type Variants } from "motion/react";
 import { Fragment, type ReactElement } from "react";
 import { tokens } from "@/design/tokens";
-import { durations, msToSeconds, revealDistance, revealTransition } from "./provider";
+import { REVEAL_AMOUNT, durations, msToSeconds, revealDistance, revealTransition } from "./provider";
 import { revealVariants, type RevealTag, type RevealVariant } from "./reveal";
 
 /** Never animate more units than this, however long the string is. */
@@ -89,18 +89,27 @@ export function SplitText({
         variants={parentVariants}
         initial="hidden"
         whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
+        viewport={{ once: true, amount: REVEAL_AMOUNT }}
       >
         {units.map((unit, index) => (
           <Fragment key={`${index}-${unit}`}>
             {by === "word" && index > 0 ? " " : null}
+            {/* text-wrap: balance is inherited from the heading, and an
+                inline-block that balances its own single word shrinks to a
+                fraction of that word's width - which overflow: hidden then
+                clips. Every unit and its mask opt out explicitly. */}
             <span
               className="inline-block overflow-hidden"
-              style={{ paddingBottom: "0.14em", marginBottom: "-0.14em" }}
+              style={{
+                paddingBottom: "0.14em",
+                marginBottom: "-0.14em",
+                textWrap: "nowrap",
+              }}
             >
               <m.span
                 data-split-unit={variant}
                 className="inline-block"
+                style={{ textWrap: "nowrap" }}
                 variants={unitVariants}
                 transition={revealTransition(reduced)}
               >

@@ -9,7 +9,11 @@
  * 80ms brutal), so a brutal grid lands like a drum roll and an editorial one
  * unfolds.
  *
- * Stagger.Item must sit inside a Stagger: the "visible" label reaches it
+ * `StaggerItem` is exported on its own as well as hanging off `Stagger.Item`,
+ * because a server component may not dot into a client module: reading
+ * `Stagger.Item` from a server section throws at render time.
+ *
+ * StaggerItem must sit inside a Stagger: the "visible" label reaches it
  * through context, so plain wrappers in between are fine, but another animated
  * element that sets its own initial or animate becomes a new root and takes
  * the items under it out of the cascade.
@@ -18,7 +22,7 @@
 import { m, useReducedMotion, type Variants } from "motion/react";
 import type { ReactElement, ReactNode } from "react";
 import { tokens } from "@/design/tokens";
-import { durations, msToSeconds, revealDistance, revealTransition } from "./provider";
+import { REVEAL_AMOUNT, durations, msToSeconds, revealDistance, revealTransition } from "./provider";
 import { revealVariants, type RevealTag, type RevealVariant } from "./reveal";
 
 const DEFAULT_VARIANT: Record<typeof tokens.motion.enter, RevealVariant> = {
@@ -28,7 +32,10 @@ const DEFAULT_VARIANT: Record<typeof tokens.motion.enter, RevealVariant> = {
   fade: "rise",
 };
 
-const DEFAULT_AMOUNT = 0.2;
+/* A Stagger often sits inside a Reveal, and on a mask direction that ancestor
+   clips it to a zero intersection ratio until it has animated. See
+   REVEAL_AMOUNT in ./provider: any threshold above 0 deadlocks there. */
+const DEFAULT_AMOUNT = REVEAL_AMOUNT;
 
 export type StaggerProps = {
   children: ReactNode;
@@ -69,7 +76,7 @@ function StaggerRoot({ children, gap = durations[0], className, as = "div" }: St
   );
 }
 
-function StaggerItem({
+export function StaggerItem({
   children,
   variant = DEFAULT_VARIANT[tokens.motion.enter],
   className,

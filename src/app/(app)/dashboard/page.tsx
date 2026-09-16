@@ -2,26 +2,20 @@ import type { Metadata } from "next";
 import type { ReactElement } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { NotePencilIcon, TrashIcon } from "@phosphor-icons/react/dist/ssr";
+import { NotePencilIcon } from "@phosphor-icons/react/dist/ssr";
 import { PageHeader } from "@/components/page-header";
 import { SnippetForm } from "@/components/snippet-form";
+import { SnippetList } from "@/components/snippet-list";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
-import { TBody, TD, TH, THead, TR, Table } from "@/components/ui/table";
 import { db } from "@/lib/db";
 import { features } from "@/lib/env";
 import { getCurrentUser } from "@/lib/session";
 import { deleteSnippet } from "./actions";
 
 export const metadata: Metadata = { title: "Dashboard" };
-
-const dateFormat = new Intl.DateTimeFormat("en-GB", {
-  day: "2-digit",
-  month: "short",
-  year: "numeric",
-});
 
 export default async function DashboardPage(): Promise<ReactElement> {
   // The (app) layout is the gate; this narrows the type for the query below.
@@ -47,7 +41,7 @@ export default async function DashboardPage(): Promise<ReactElement> {
   const isPremium = Boolean(premium?.premiumUntil && premium.premiumUntil > new Date());
 
   return (
-    <div className="flex flex-col gap-block">
+    <div className="flex flex-col gap-stack">
       <PageHeader
         title="Your dashboard"
         description={`Signed in as ${user.email}`}
@@ -87,38 +81,7 @@ export default async function DashboardPage(): Promise<ReactElement> {
             }
           />
         ) : (
-          <Table>
-            <THead>
-              <TR>
-                <TH>Title</TH>
-                <TH align="right">Saved</TH>
-                <TH className="w-px">
-                  <span className="sr-only">Actions</span>
-                </TH>
-              </TR>
-            </THead>
-            <TBody>
-              {records.map((record) => (
-                <TR key={record.id}>
-                  <TD className="max-w-0">
-                    <span className="block truncate">{record.title}</span>
-                  </TD>
-                  <TD align="right" className="text-muted">
-                    {dateFormat.format(record.createdAt)}
-                  </TD>
-                  <TD className="text-right">
-                    <form action={deleteSnippet}>
-                      <input type="hidden" name="id" value={record.id} />
-                      <Button type="submit" variant="ghost" size="sm">
-                        <TrashIcon aria-hidden="true" weight="regular" className="size-4" />
-                        <span className="sr-only sm:not-sr-only">Delete</span>
-                      </Button>
-                    </form>
-                  </TD>
-                </TR>
-              ))}
-            </TBody>
-          </Table>
+          <SnippetList snippets={records} deleteAction={deleteSnippet} />
         )}
       </section>
     </div>

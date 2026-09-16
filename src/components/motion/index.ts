@@ -43,5 +43,5 @@ export {
   Spotlight,
   type SpotlightProps,
 } from "./spotlight";
-export { Stagger, type StaggerItemProps, type StaggerProps } from "./stagger";
+export { Stagger, StaggerItem, type StaggerItemProps, type StaggerProps } from "./stagger";
 export { DEFAULT_TILT_DEGREES, TiltCard, tiltAngle, type TiltCardProps } from "./tilt-card";

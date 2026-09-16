@@ -1,67 +1,89 @@
 import type { ReactElement } from "react";
-import Link from "next/link";
-import { ArrowRightIcon } from "@phosphor-icons/react/dist/ssr";
-import brand from "@/brand";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardDescription, CardTitle } from "@/components/ui/card";
+import {
+  Bento,
+  CtaBand,
+  Faq,
+  Hero,
+  ProductFrame,
+  Section,
+  SectionHeader,
+  Stats,
+  Steps,
+} from "@/components/sections";
+import { SnippetList } from "@/components/snippet-list";
 import { WaitlistForm } from "@/components/waitlist-form";
+import { demoSnippetsWithDates } from "@/content/demo";
+import { benefits, ctaBand, faqs, frame, hero, stats, steps } from "@/content/marketing";
 
-/* Replace this copy with the promise of the product you are building. One
-   headline, one sentence, three benefits. Do not turn it into a feature list,
-   and do not invent a number you cannot show. */
-const benefits = [
-  {
-    title: "One loop, not a tour",
-    body: "A visitor can do the single valuable thing on their first visit. Everything else waits until that works.",
-  },
-  {
-    title: "Reads on the server",
-    body: "Pages query Postgres directly in server components. No spinner stands in for data the page already has.",
-  },
-  {
-    title: "Honest when unconfigured",
-    body: "Missing Stripe, email or database credentials turn a feature off with a clear message instead of a stack trace.",
-  },
-] as const;
-
+/**
+ * The landing page, composed from the kit.
+ *
+ * The shape to keep when you replace the copy: a Hero with the product really
+ * running inside it, then at least four more sections. Everything below the
+ * hero answers one question each - what it does, how it works, what is true
+ * about it, what people ask, and what to do next.
+ *
+ * Every word comes from src/content/marketing.ts. Every row in the frame is the
+ * same seeded data a new account gets, from src/content/demo.ts.
+ */
 export default function HomePage(): ReactElement {
+  const rows = demoSnippetsWithDates()
+    .slice(0, 5)
+    .map((snippet, index) => ({ ...snippet, id: `demo-${index}` }));
+
   return (
-    <div className="mx-auto w-full max-w-wide px-4 sm:px-6">
-      <section className="flex flex-col items-start gap-6 py-section">
-        <Badge tone="accent" variant="sticker">
-          Starter template
-        </Badge>
+    <>
+      <Hero
+        eyebrow={hero.eyebrow}
+        headline={hero.headline}
+        sub={hero.sub}
+        primary={hero.primaryCta}
+        secondary={hero.secondaryCta}
+        note={hero.note}
+        frame={
+          <ProductFrame label={`${frame.eyebrow} - live`}>
+            <SnippetList snippets={rows} density="compact" />
+          </ProductFrame>
+        }
+      />
 
-        <h1 className="max-w-content text-display text-ink">
-          Ship the thing people came for, on day one.
-        </h1>
+      <Bento
+        id="what"
+        items={benefits}
+        eyebrow="What is already built"
+        title="The parts nobody enjoys building"
+        description="Wired, verified, and yours to change. None of it is a dependency you have to wait on."
+      />
 
-        <p className="max-w-prose text-lead text-muted">{brand.tagline}</p>
+      <Steps
+        id="how"
+        steps={steps}
+        eyebrow="How a build goes"
+        title="Four steps, in this order"
+        description="Each one ends with something you can open in a browser."
+      />
 
-        <WaitlistForm />
+      <Stats stats={stats} title="Counted, not claimed" />
 
-        <div className="flex flex-wrap items-center gap-3 pt-2">
-          <Button asChild variant="secondary" size="lg">
-            <Link href="/sign-up">Create an account</Link>
-          </Button>
-          <Button asChild variant="link" size="lg">
-            <Link href="/compare">
-              See how it compares
-              <ArrowRightIcon aria-hidden="true" weight="bold" className="size-4" />
-            </Link>
-          </Button>
+      <Section id="waitlist" tone="surface" width="content">
+        <div className="flex flex-col gap-6">
+          <SectionHeader
+            eyebrow="Stay in touch"
+            title="Get told when something changes"
+            description="One short email when a version ships. No newsletter, no drip sequence."
+          />
+          <WaitlistForm />
         </div>
-      </section>
+      </Section>
 
-      <section className="grid gap-4 pb-section sm:grid-cols-3">
-        {benefits.map((benefit) => (
-          <Card key={benefit.title}>
-            <CardTitle>{benefit.title}</CardTitle>
-            <CardDescription>{benefit.body}</CardDescription>
-          </Card>
-        ))}
-      </section>
-    </div>
+      <Faq id="faq" items={faqs} eyebrow="Questions" title="Before you start" />
+
+      <CtaBand
+        title={ctaBand.title}
+        body={ctaBand.body}
+        primary={ctaBand.primary}
+        secondary={ctaBand.secondary}
+      />
+    </>
   );
 }

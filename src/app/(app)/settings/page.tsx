@@ -21,7 +21,7 @@ export default async function SettingsPage(): Promise<ReactElement> {
   const scheme = brand.scheme === "dark" ? "Dark" : "Light";
 
   return (
-    <div className="flex flex-col gap-block">
+    <div className="flex flex-col gap-stack">
       <PageHeader
         title="Settings"
         description="Your account, and what this product looks like. Both are short on purpose."

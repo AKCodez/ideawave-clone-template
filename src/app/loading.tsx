@@ -17,7 +17,7 @@ export default function Loading(): ReactElement {
       <Skeleton className="h-12 w-3/4 max-w-lg" />
       <SkeletonText lines={3} className="mt-6 max-w-prose" />
 
-      <div className="mt-block grid gap-4 sm:grid-cols-3">
+      <div className="mt-stack grid gap-4 sm:grid-cols-3">
         {[0, 1, 2].map((panel) => (
           <div
             key={panel}

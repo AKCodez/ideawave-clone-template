@@ -1,6 +1,5 @@
 import type { ReactElement, ReactNode } from "react";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
+import { Footer, SiteHeader } from "@/components/sections";
 
 /** Public pages: the header, the page, the footer. No session is read here. */
 export default function MarketingLayout({
@@ -10,7 +9,7 @@ export default function MarketingLayout({
     <div className="flex flex-1 flex-col">
       <SiteHeader />
       <main className="flex-1">{children}</main>
-      <SiteFooter />
+      <Footer />
     </div>
   );
 }

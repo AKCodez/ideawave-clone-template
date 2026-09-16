@@ -94,9 +94,13 @@
   --shadow-hard: 3px 3px 0 0 var(--color-line-strong);
   --shadow-glow: 0 0 0 1px var(--color-line);
 
-  /* Rhythm and measure. */
+  /* Rhythm and measure. A spacing key becomes part of a utility name, so
+     it must never be a CSS display keyword: `--spacing-block` would emit
+     `.inline-block { inline-size: ... }`, which silently beats Tailwind's
+     own `.inline-block { display: inline-block }` and collapses every
+     inline-block in the app. Hence `stack`, not `block`. */
   --spacing-section: clamp(4.5rem, 3rem + 6vw, 8rem);
-  --spacing-block: clamp(1.75rem, 1.25rem + 1.6vw, 2.75rem);
+  --spacing-stack: clamp(1.75rem, 1.25rem + 1.6vw, 2.75rem);
   --container-prose: 38rem;
   --container-content: 64rem;
   --container-wide: 80rem;
@@ -172,5 +176,5 @@ html[data-scheme="light"] {
 /* Plain aliases for raw var() use where a utility would be noise. */
 :root {
   --space-section: var(--spacing-section);
-  --space-block: var(--spacing-block);
+  --space-stack: var(--spacing-stack);
 }

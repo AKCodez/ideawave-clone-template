@@ -50,6 +50,23 @@ export const revealMs: number = durations[REVEAL_STEP[motionDirection]];
 /** How far an entrance travels, in px, already carrying the brand's intensity. */
 export const revealDistance: number = tokens.motion.distance;
 
+/**
+ * How much of an element must be on screen before it enters.
+ *
+ * ZERO IS LOAD-BEARING ON A MASK DIRECTION, and this is the single sharpest
+ * edge in the whole motion kit. A `clip-path` that hides an element also
+ * collapses its IntersectionObserver ratio to 0, measured in Chrome 152: an
+ * element clipped by `inset(0% 0% 100% 0%)` reports ratio 0 while still
+ * reporting `isIntersecting: true` at threshold 0. So an element that clips
+ * itself can never cross a threshold above 0, never animates, never un-clips -
+ * and because `clip-path` clips descendants too, everything inside it is stuck
+ * with it. A whole page of empty boxes, with no error anywhere.
+ *
+ * Any threshold above 0 is therefore a deadlock on editorial. Do not "tidy"
+ * this back to a fraction.
+ */
+export const REVEAL_AMOUNT: number = tokens.motion.enter === "mask" ? 0 : 0.2;
+
 /** Luminous settles with an overshoot instead of easing to a stop. */
 export const SPRING = { stiffness: 300, damping: 20 } as const;
 

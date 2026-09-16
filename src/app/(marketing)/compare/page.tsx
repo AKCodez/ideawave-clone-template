@@ -19,7 +19,7 @@ export default function CompareIndexPage(): ReactElement {
         </p>
       </header>
 
-      <div className="mt-block grid gap-4 sm:grid-cols-2">
+      <div className="mt-stack grid gap-4 sm:grid-cols-2">
         {compareEntries.map((entry) => (
           <Link key={entry.slug} href={`/compare/${entry.slug}`} className="block no-underline">
             <Card interactive className="h-full">

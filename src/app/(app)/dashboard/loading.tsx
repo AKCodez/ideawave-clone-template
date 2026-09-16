@@ -4,7 +4,7 @@ import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
 /** The shape of the dashboard, drawn before its rows arrive. */
 export default function DashboardLoading(): ReactElement {
   return (
-    <div className="flex flex-col gap-block" aria-busy="true" aria-live="polite">
+    <div className="flex flex-col gap-stack" aria-busy="true" aria-live="polite">
       <span className="sr-only">Loading your dashboard</span>
 
       <div className="flex flex-wrap items-end justify-between gap-4 border-b-(length:--stroke) border-line pb-6">

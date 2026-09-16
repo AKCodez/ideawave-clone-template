@@ -59,7 +59,7 @@ mono plus tabular figures, for money, counts and timestamps.
 
 ## Space, radius, stroke, elevation
 
-- Rhythm: `py-section` between sections, `gap-block` / `mt-block` inside one.
+- Rhythm: `py-section` between sections, `gap-stack` / `mt-stack` inside one.
 - Measure: `max-w-prose` (reading column), `max-w-content` (default page),
   `max-w-wide` (full-bleed layouts). `prose-measure` is the same as `max-w-prose`.
 - Radius: `rounded-sm|md|lg|xl|2xl`, plus `rounded-input` for controls. The

@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
-import type { ReactElement } from "react";
-import { CheckIcon } from "@phosphor-icons/react/dist/ssr";
+import type { ReactElement, ReactNode } from "react";
+import Link from "next/link";
 import { CheckoutButton } from "@/components/checkout-button";
+import { Faq, Pricing } from "@/components/sections";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { faqs, plans, pricingNote, type Plan } from "@/content/marketing";
 import { db } from "@/lib/db";
 import { features } from "@/lib/env";
 import { getCurrentUser } from "@/lib/session";
@@ -13,12 +15,6 @@ export const metadata: Metadata = {
   title: "Pricing",
   description: "One paid plan. Cancel from the billing portal whenever you like.",
 };
-
-const included = [
-  "Unlimited records",
-  "Everything on the free plan",
-  "Email support",
-] as const;
 
 export default async function PremiumPage(): Promise<ReactElement> {
   const user = await getCurrentUser();
@@ -33,50 +29,34 @@ export default async function PremiumPage(): Promise<ReactElement> {
 
   const active = subscription?.status === "active" || subscription?.status === "trialing";
 
+  /* The free plan links to sign-up; the paid one opens Stripe Checkout, or says
+     plainly that it is already active. The amount always comes from Stripe. */
+  function actionFor(plan: Plan): ReactNode {
+    if (!plan.featured) {
+      return (
+        <Button asChild variant="secondary" size="lg" className="w-full">
+          <Link href="/sign-up">Start free</Link>
+        </Button>
+      );
+    }
+    if (active) {
+      return <Badge tone="positive">Active on your account</Badge>;
+    }
+    return <CheckoutButton enabled={canCheckout} />;
+  }
+
   return (
-    <div className="mx-auto w-full max-w-content px-4 py-section sm:px-6">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-h1 text-ink">One plan, one price</h1>
-        <p className="max-w-prose text-lead text-muted">
-          Start free. Upgrade when the free plan stops being enough.
-        </p>
-      </header>
+    <>
+      <Pricing
+        plans={plans}
+        note={pricingNote}
+        eyebrow="Pricing"
+        title="One plan, one price"
+        description="Start free. Upgrade when the free plan stops being enough."
+        action={actionFor}
+      />
 
-      <Card className="mt-block max-w-prose">
-        <CardHeader>
-          <div className="flex items-start justify-between gap-4">
-            <CardTitle>Premium</CardTitle>
-            {active ? <Badge tone="positive">Active</Badge> : null}
-          </div>
-          <p className="mt-1.5 text-small text-muted">Billed monthly. Cancel any time.</p>
-        </CardHeader>
-
-        <ul className="flex flex-col gap-2.5">
-          {included.map((item) => (
-            <li key={item} className="flex items-start gap-2.5 text-small text-ink">
-              <CheckIcon
-                aria-hidden="true"
-                weight="bold"
-                className="mt-1 size-3.5 shrink-0 text-accent"
-              />
-              {item}
-            </li>
-          ))}
-        </ul>
-
-        <CardFooter>
-          {active ? (
-            <p className="text-small text-muted">You are on Premium. Nothing to do here.</p>
-          ) : (
-            <CheckoutButton enabled={canCheckout} />
-          )}
-        </CardFooter>
-      </Card>
-
-      <p className="mt-6 max-w-prose text-small text-muted">
-        Prices come from Stripe. This page never hardcodes an amount, so changing the price
-        in Stripe changes it everywhere.
-      </p>
-    </div>
+      <Faq items={faqs} title="Questions about billing and everything else" />
+    </>
   );
 }

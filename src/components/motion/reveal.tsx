@@ -16,7 +16,7 @@
 import { m, useReducedMotion, type Variants } from "motion/react";
 import type { ReactElement, ReactNode } from "react";
 import { tokens } from "@/design/tokens";
-import { OVERSHOOT_FROM, revealDistance, revealTransition } from "./provider";
+import { OVERSHOOT_FROM, REVEAL_AMOUNT, revealDistance, revealTransition } from "./provider";
 
 export type RevealVariant = "fade" | "rise" | "mask" | "blur";
 
@@ -50,8 +50,7 @@ const DEFAULT_VARIANT: Record<typeof tokens.motion.enter, RevealVariant> = {
   fade: "rise",
 };
 
-/** How much of an element must be on screen before it enters. */
-const DEFAULT_AMOUNT = 0.2;
+
 
 export function revealVariants(variant: RevealVariant, distance: number): Variants {
   switch (variant) {
@@ -90,11 +89,15 @@ export function Reveal({
   variant = DEFAULT_VARIANT[tokens.motion.enter],
   delay = 0,
   once = true,
-  amount = DEFAULT_AMOUNT,
+  amount = REVEAL_AMOUNT,
   className,
 }: RevealProps): ReactElement {
   const reduced = useReducedMotion() ?? false;
   const Tag = m[as] as typeof m.div;
+  /* A mask hides the element by clipping it to nothing, and a clipped element
+     reports an intersection ratio of 0 forever - so any threshold above 0 is a
+     deadlock. See REVEAL_AMOUNT in ./provider. */
+  const safeAmount = variant === "mask" ? 0 : amount;
 
   return (
     <Tag
@@ -103,7 +106,7 @@ export function Reveal({
       variants={revealVariants(variant, revealDistance)}
       initial="hidden"
       whileInView="visible"
-      viewport={{ once, amount }}
+      viewport={{ once, amount: safeAmount }}
       transition={revealTransition(reduced, delay)}
     >
       {children}
