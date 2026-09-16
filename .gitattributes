@@ -1,0 +1,11 @@
+# The sandbox that runs this template is Linux. CRLF in scripts/verify.sh would
+# break its shebang, so line endings are normalized to LF everywhere.
+* text=auto eol=lf
+
+*.sh text eol=lf
+*.mjs text eol=lf
+
+*.ico binary
+*.png binary
+*.jpg binary
+*.woff2 binary
