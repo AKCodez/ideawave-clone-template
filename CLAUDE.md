@@ -96,8 +96,12 @@ fourth one you thought of. A feature is done when all six of these are true:
 4. **Seed** - `src/content/demo.ts` carries at least five plausible rows for it,
    and `prisma/seed.ts` inserts them. Precomputed: seeding never calls AI.
 5. **Empty state** - what a brand new account sees, and how to leave it.
-6. **Acceptance** - you have walked every acceptance line in the browser
-   yourself, signed in as the demo user, and seen it work.
+6. **Acceptance** - every acceptance line is true by construction. This
+   sandbox has no database and no browser: the pipeline migrates, seeds, boots,
+   smokes and audits the app after you finish, then hands you its screenshots
+   in a polish pass. So the page must render from the rows in
+   `src/content/demo.ts`, the action must be wired end to end, the empty
+   state must exist, and `npm run verify` must be green.
 
 ## Build order
 
@@ -107,11 +111,15 @@ Verify between every step. Do not move on from a red step.
    product, metadata in `src/app/layout.tsx`. No "Clone Kit", no "Clone
    Template", no "example.com", no "localhost" outside `.env.example`.
 2. **Schema and migration.** Replace the `Snippet` example model with the real
-   models of the three features. Then, with a reachable database:
-   `npx prisma migrate diff --from-url "$DATABASE_URL" --to-schema prisma/schema.prisma --script --output prisma/migrations/0003_<name>/migration.sql`
-   then `npx prisma migrate deploy && npx prisma generate`.
-   Prisma 7 uses `--to-schema`, and `--from-migrations` needs a shadow database
-   it does not have here, so diff from the live URL.
+   models of the three features. There is no database here, so diff schema
+   against schema: `.clone/schema.base.prisma` is the template's schema as it
+   was before you started (the pipeline writes it). One migration for all the
+   new models:
+   `mkdir -p prisma/migrations/0003_<name> && npx prisma migrate diff --from-schema .clone/schema.base.prisma --to-schema prisma/schema.prisma --script --output prisma/migrations/0003_<name>/migration.sql`
+   then `npx prisma generate`. If the schema changes again later, delete that
+   migration and regenerate it the same way; never write a second one. Do not run
+   `prisma migrate deploy` or `prisma migrate dev`: the pipeline deploys
+   every migration against a fresh database when it boots the app.
 3. **Demo data.** Rewrite `src/content/demo.ts` for the three features: eight to
    fifteen rows each, relative dates, precomputed AI output. Then `prisma/seed.ts`.
 4. **Feature 1**, end to end, all six bars. Then feature 2. Then feature 3.
@@ -120,7 +128,8 @@ Verify between every step. Do not move on from a red step.
 6. **Comparison** content in `src/content/compare.ts`: one real incumbent,
    delete the placeholders. This file is the only place a competitor is named.
 7. **Dashboard and settings** polish: real state, real empty states.
-8. **Verify** until green, then walk the whole thing in a browser.
+8. **Verify** until green. The pipeline boots, smokes and audits the app
+   after you finish; the polish pass shows you what it saw.
 9. **Report**: write `.clone/REPORT.md` containing only JSON:
    `{ "built": [], "notBuilt": [], "features": [{ "name": "", "entryPath": "", "acceptance": [] }], "notes": "" }`.
 
@@ -170,4 +179,4 @@ colours, 3 landing composition, 4 renames, 5 generated files out of sync, 6 the
 feature bar, 7 missing asset routes.
 
 A file being written is not verification. A phase is done when `npm run verify`
-exits clean and you have walked the feature yourself in a browser.
+exits clean and the feature's page, action, seed rows and empty state all exist.
