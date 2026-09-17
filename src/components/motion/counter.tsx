@@ -15,10 +15,10 @@
  */
 
 import { animate, useInView, useIsomorphicLayoutEffect, useReducedMotion } from "motion/react";
-import { useEffect, useRef, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { cn } from "@/lib/utils";
 import { tokens } from "@/design/tokens";
-import { cubicPoints, durations, msToSeconds, stepCount, stepsEase } from "./provider";
+import { REVEAL_SETTLE_MS, cubicPoints, durations, msToSeconds, stepCount, stepsEase } from "./provider";
 
 /** The climb takes the longest duration step this direction owns. */
 const COUNT_MS = durations[4];
@@ -46,6 +46,12 @@ export function Counter({ value, format = defaultFormat, className }: CounterPro
   const started = useRef(false);
   const reduced = useReducedMotion() ?? false;
   const inView = useInView(ref, { once: true, amount: 0.4 });
+  // A number that is never scrolled to still climbs: see REVEAL_SETTLE_MS in ./provider.
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), REVEAL_SETTLE_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Once JavaScript is running, drop to zero before the first paint after
   // hydration, so the climb has somewhere to start. Without JavaScript, or
@@ -58,7 +64,7 @@ export function Counter({ value, format = defaultFormat, className }: CounterPro
 
   useEffect(() => {
     const node = ref.current;
-    if (!node || !inView || reduced || started.current) return;
+    if (!node || !(inView || settled) || reduced || started.current) return;
     started.current = true;
 
     const controls = animate(0, value, {
@@ -73,7 +79,7 @@ export function Counter({ value, format = defaultFormat, className }: CounterPro
     });
 
     return () => controls.stop();
-  }, [inView, reduced, value, format]);
+  }, [inView, settled, reduced, value, format]);
 
   return (
     <span ref={ref} className={cn("numeric", className)}>
