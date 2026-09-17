@@ -50,7 +50,13 @@ function parsePages() {
       .map((p) => p);
     /* Anything behind the shell needs the demo session; everything else is
        shot signed out, because that is what a visitor sees. */
-    const signedIn = paths.filter((p) => /^\/(dashboard|settings|app)\b/.test(p));
+    // Every audited page but the landing page is an app page (the pipeline passes
+
+    // /dashboard and the feature entry paths), so all of them are shot signed in;
+
+    // a prefix rule missed feature routes like /repurpose and shot the sign-in page.
+
+    const signedIn = paths.filter((p) => p !== "/");
     const isPublic = paths.filter((p) => !signedIn.includes(p));
     return { public: isPublic.length > 0 ? isPublic : ["/"], signedIn };
   } catch (error) {
