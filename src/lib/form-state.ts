@@ -7,11 +7,20 @@
 export type FormState = {
   /**
    * - `idle` nothing has been submitted yet
-   * - `ok` the write succeeded and everything the action promised happened
-   * - `degraded` the write succeeded but an optional step did not: the row is
-   *   saved, the AI summary is missing. Render `<AiNotice />` next to the
-   *   message, never an error - the user got what they asked for.
-   * - `error` nothing was written; `message` says why in the user's terms
+   * - `ok` everything the action promised happened
+   * - `degraded` what the user pressed the button for happened, but an
+   *   optional step did not - a row saved without its AI summary, say. Render
+   *   `<AiNotice />` beside the message, never an error: the user got the
+   *   thing they asked for.
+   * - `error` the action did not do what it promised; `message` says why in
+   *   the user's terms
+   *
+   * `message` must only ever claim what THIS action did. In an action whose
+   * whole job is the optional step - a standalone Summarise button on a row
+   * that is already saved - a failure means nothing happened at all, so the
+   * copy says "Summaries need a key", never "Saved, but ...". Nothing was
+   * saved by that click, and a message that says otherwise is a small lie the
+   * user can catch.
    */
   status: "idle" | "ok" | "degraded" | "error";
   message: string;

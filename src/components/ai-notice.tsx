@@ -25,7 +25,7 @@ export function AiNotice({ message, className }: AiNoticeProps) {
       className={cn("mt-2 flex items-start gap-2 text-small text-warning", className)}
     >
       <span aria-hidden="true">&bull;</span>
-      <span>{message ?? "Saved. The summary is not available right now."}</span>
+      <span>{message ?? "The summary is not available right now."}</span>
     </p>
   );
 }

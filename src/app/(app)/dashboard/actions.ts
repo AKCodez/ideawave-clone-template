@@ -60,8 +60,11 @@ const summarySchema = z.object({
  * in `prompt`, never in `system`, so a snippet that says "ignore your
  * instructions" is data rather than a command. And the call cannot throw: when
  * the gateway key is missing or the model fails, the action returns
- * `"degraded"` and the page says so, because the snippet is already saved and a
- * missing summary is an inconvenience rather than a failure.
+ * `"degraded"` and the page says which of the two it was.
+ *
+ * This action's whole job is the optional step, so a degraded result here means
+ * nothing happened at all. The snippet is untouched and still readable; only
+ * the summary is missing.
  */
 export async function summariseSnippet(_prev: FormState, formData: FormData): Promise<FormState> {
   const user = await getCurrentUser();
@@ -89,10 +92,13 @@ export async function summariseSnippet(_prev: FormState, formData: FormData): Pr
   if (!result.ok) {
     return {
       status: "degraded",
+      /* Not "Saved." - nothing was written on this click. The snippet already
+         existed before the button was pressed, and on this path it is
+         untouched, so a message must only claim what THIS action did. */
       message:
         result.reason === "disabled"
-          ? "Saved. Summaries need AI_GATEWAY_API_KEY, which this deployment does not have."
-          : "Saved. The summary could not be written just now. Try again in a moment.",
+          ? "Summaries need AI_GATEWAY_API_KEY, which this deployment does not have."
+          : "The summary could not be written just now. Try again in a moment.",
     };
   }
 
