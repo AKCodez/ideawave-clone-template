@@ -67,6 +67,16 @@ export const revealDistance: number = tokens.motion.distance;
  */
 export const REVEAL_AMOUNT: number = tokens.motion.enter === "mask" ? 0 : 0.2;
 
+/**
+ * An entrance that has not been scrolled into view by this many milliseconds
+ * plays anyway. The page must never stay parked at opacity 0 for a reader who
+ * does not scroll: a full-page capture, a link preview, a crawler with a short
+ * viewport, a member reading the hero for a while. Fast scrollers still get the
+ * scroll-triggered entrance; a first build's landing page shot as one tall
+ * image was hero, five thousand pixels of nothing, then the footer.
+ */
+export const REVEAL_SETTLE_MS = 2200;
+
 /** Luminous settles with an overshoot instead of easing to a stop. */
 export const SPRING = { stiffness: 300, damping: 20 } as const;
 

@@ -20,9 +20,9 @@
  */
 
 import { m, useReducedMotion, type Variants } from "motion/react";
-import type { ReactElement, ReactNode } from "react";
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { tokens } from "@/design/tokens";
-import { REVEAL_AMOUNT, durations, msToSeconds, revealDistance, revealTransition } from "./provider";
+import { REVEAL_AMOUNT, REVEAL_SETTLE_MS, durations, msToSeconds, revealDistance, revealTransition } from "./provider";
 import { revealVariants, type RevealTag, type RevealVariant } from "./reveal";
 
 const DEFAULT_VARIANT: Record<typeof tokens.motion.enter, RevealVariant> = {
@@ -54,6 +54,12 @@ export type StaggerItemProps = {
 
 function StaggerRoot({ children, gap = durations[0], className, as = "div" }: StaggerProps): ReactElement {
   const reduced = useReducedMotion() ?? false;
+  /* See REVEAL_SETTLE_MS in ./provider: a group that never scrolls into view still plays. */
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), REVEAL_SETTLE_MS);
+    return () => clearTimeout(timer);
+  }, []);
   const Tag = m[as] as typeof m.div;
   const variants: Variants = {
     hidden: {},
@@ -67,6 +73,7 @@ function StaggerRoot({ children, gap = durations[0], className, as = "div" }: St
       data-stagger=""
       className={className}
       variants={variants}
+      animate={settled ? "visible" : undefined}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: DEFAULT_AMOUNT }}

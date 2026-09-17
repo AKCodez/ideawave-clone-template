@@ -14,9 +14,9 @@
  */
 
 import { m, useReducedMotion, type Variants } from "motion/react";
-import type { ReactElement, ReactNode } from "react";
+import { useEffect, useState, type ReactElement, type ReactNode } from "react";
 import { tokens } from "@/design/tokens";
-import { OVERSHOOT_FROM, REVEAL_AMOUNT, revealDistance, revealTransition } from "./provider";
+import { OVERSHOOT_FROM, REVEAL_AMOUNT, REVEAL_SETTLE_MS, revealDistance, revealTransition } from "./provider";
 
 export type RevealVariant = "fade" | "rise" | "mask" | "blur";
 
@@ -98,6 +98,13 @@ export function Reveal({
      reports an intersection ratio of 0 forever - so any threshold above 0 is a
      deadlock. See REVEAL_AMOUNT in ./provider. */
   const safeAmount = variant === "mask" ? 0 : amount;
+  /* Whatever has not entered the viewport by the settle time plays anyway;
+     see REVEAL_SETTLE_MS in ./provider. */
+  const [settled, setSettled] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setSettled(true), REVEAL_SETTLE_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <Tag
@@ -105,6 +112,7 @@ export function Reveal({
       className={className}
       variants={revealVariants(variant, revealDistance)}
       initial="hidden"
+      animate={settled ? "visible" : undefined}
       whileInView="visible"
       viewport={{ once, amount: safeAmount }}
       transition={revealTransition(reduced, delay)}

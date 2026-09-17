@@ -7,7 +7,7 @@
 import { describe, expect, it } from "vitest";
 import { clampParallax, MAX_PARALLAX_PX } from "./parallax";
 import { ASSUMED_TRACK_PX, marqueeSeconds } from "./marquee";
-import { cubicPoints, msToSeconds, stepCount, stepsEase } from "./provider";
+import { cubicPoints, msToSeconds, stepCount, stepsEase, REVEAL_SETTLE_MS } from "./provider";
 import { MAX_UNITS, splitUnits } from "./split-text";
 import { magneticOffset } from "./magnetic";
 import { tiltAngle } from "./tilt-card";
@@ -130,5 +130,12 @@ describe("tiltAngle", () => {
 
   it("is flat when the direction sets no tilt", () => {
     expect(tiltAngle(100, 0, 100, 0)).toBe(0);
+  });
+});
+
+describe("REVEAL_SETTLE_MS", () => {
+  it("reveals every entrance on its own within a few seconds, so a capture or crawler that never scrolls still sees the page", () => {
+    expect(REVEAL_SETTLE_MS).toBeGreaterThanOrEqual(1500);
+    expect(REVEAL_SETTLE_MS).toBeLessThanOrEqual(4000);
   });
 });
