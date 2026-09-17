@@ -46,6 +46,28 @@ export type StatsProps = {
 };
 
 export function Stats({ stats, title, description, id }: StatsProps): ReactElement {
+  if (tokens.brand.composition.stats === "rows") {
+    // The composition's "rows" style: a ruled table, one fact per row, the
+    // number right-aligned in tabular figures. Same counted facts, read as a
+    // ledger instead of a billboard.
+    return (
+      <Section id={id}>
+        {title ? <SectionHeader title={title} description={description} /> : null}
+        <ul className={clsx("flex flex-col", title && "mt-stack")}>
+          {stats.map((stat) => (
+            <li key={stat.label} className={clsx("flex items-baseline justify-between gap-6 py-4", RULE)}>
+              <p className="text-body text-muted">{stat.label}</p>
+              <p className="numeric text-h2 text-ink">
+                {stat.prefix}
+                <Counter value={stat.value} />
+                {stat.suffix}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </Section>
+    );
+  }
   return (
     <Section id={id}>
       {title ? <SectionHeader title={title} description={description} /> : null}

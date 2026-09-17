@@ -55,6 +55,11 @@ export const brand = {
       "No faces, no handshakes, no abstract 3D blobs"
     ]
   },
+  "composition": {
+    "hero": "split",
+    "bento": "dense",
+    "stats": "numerals"
+  },
   "credit": {
     "startupUrl": "https://ideawave.io",
     "builtInMinutes": null

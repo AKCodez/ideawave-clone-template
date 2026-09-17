@@ -4,7 +4,7 @@
  * are held to one standard. `scripts/design-check.mjs` runs `validateBrand`.
  */
 import { z } from "zod";
-import { DIRECTIONS, FONT_KEYS, SCHEMES, fontIssues, type Brand } from "./types";
+import { BENTO_DENSITIES, DIRECTIONS, FONT_KEYS, HERO_LAYOUTS, SCHEMES, STATS_STYLES, fontIssues, type Brand } from "./types";
 
 function httpsUrl(value: string): boolean {
   return /^https:\/\/[^\s]+$/.test(value);
@@ -46,6 +46,11 @@ export const BrandSchema = z
       avoid: z.array(z.string().min(1).max(40)).max(12),
     }),
     imagery: z.object({ rules: z.array(z.string().min(3).max(160)).max(8) }),
+    composition: z.object({
+      hero: z.enum(HERO_LAYOUTS),
+      bento: z.enum(BENTO_DENSITIES),
+      stats: z.enum(STATS_STYLES),
+    }),
     credit: z.object({
       startupUrl: z.string().refine(httpsUrl, "https URL"),
       builtInMinutes: z.number().int().min(0).nullable(),

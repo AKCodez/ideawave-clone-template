@@ -10,7 +10,7 @@
  * scripts and client components all import it.
  */
 
-export const KIT_CONTRACT_VERSION = "0.2.0";
+export const KIT_CONTRACT_VERSION = "0.3.0";
 
 export const DIRECTIONS = ["editorial", "luminous", "brutal", "craft"] as const;
 export type Direction = (typeof DIRECTIONS)[number];
@@ -113,6 +113,19 @@ export type MotionIntensity = "calm" | "lively" | "bold";
  * `src/brand.ts` in a build: data only, no logic, validated identically on both
  * sides of the contract. Every token in `src/design/` is derived from it.
  */
+/**
+ * How the kit composes this build's pages. Three hero layouts, two bento
+ * densities and two stats styles; IdeaWave's brand step chooses, the kit only
+ * renders what is here. Mirrors COMPOSITION in IdeaWave's kit.ts.
+ */
+export const HERO_LAYOUTS = ["stage", "split", "ledger"] as const;
+export type HeroLayout = (typeof HERO_LAYOUTS)[number];
+export const BENTO_DENSITIES = ["dense", "airy"] as const;
+export type BentoDensity = (typeof BENTO_DENSITIES)[number];
+export const STATS_STYLES = ["numerals", "rows"] as const;
+export type StatsStyle = (typeof STATS_STYLES)[number];
+export type Composition = { hero: HeroLayout; bento: BentoDensity; stats: StatsStyle };
+
 export type Brand = {
   /** 2-24 characters. The product's name, everywhere. */
   name: string;
@@ -141,6 +154,7 @@ export type Brand = {
   };
   voice: { adjectives: string[]; phrases: string[]; avoid: string[] };
   imagery: { rules: string[] };
+  composition: Composition;
   credit: { startupUrl: string; builtInMinutes: number | null };
   meta: { generator: "ideawave-clone-studio"; version: 1; buildId: string };
 };

@@ -1,11 +1,13 @@
 import type { ReactElement } from "react";
 import Link from "next/link";
+import { clsx } from "clsx";
 import brand from "@/brand";
 import { Marquee, Reveal, SplitText } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { tokens } from "@/design/tokens";
 import { Section } from "./section";
 import type { HeroProps } from "./hero";
+import { heroLayout } from "./hero-layout";
 
 /**
  * Brutal: a printed poster.
@@ -42,10 +44,19 @@ export function HeroBrutal({
         ))}
       </Marquee>
 
-      <div className="mx-auto grid w-full max-w-wide gap-stack px-4 py-stack sm:px-6 lg:grid-cols-2 lg:items-start">
-        <Reveal delay={step} className="flex flex-col gap-6">
+      {/* The composition's layout: split keeps the poster's two columns, stage centres the copy
+          over the product, ledger runs the copy full width with the product as a band below. */}
+      <div
+        className={clsx(
+          "mx-auto w-full max-w-wide gap-stack px-4 py-stack sm:px-6",
+          heroLayout === "split" && "grid lg:grid-cols-2 lg:items-start",
+          heroLayout === "stage" && "flex flex-col items-center text-center",
+          heroLayout === "ledger" && "flex flex-col",
+        )}
+      >
+        <Reveal delay={step} className={clsx("flex flex-col gap-6", heroLayout === "stage" && "items-center")}>
           <p className="max-w-prose text-lead text-ink">{sub}</p>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className={clsx("flex flex-wrap items-center gap-3", heroLayout === "stage" && "justify-center")}>
             <Button asChild variant="primary" size="lg">
               <Link href={primary.href}>{primary.label}</Link>
             </Button>
@@ -59,7 +70,7 @@ export function HeroBrutal({
         </Reveal>
 
         {frame ? (
-          <Reveal delay={step * 2} className="min-w-0">
+          <Reveal delay={step * 2} className={clsx("min-w-0", heroLayout === "ledger" && "border-t-(length:--stroke-strong) border-line-strong pt-stack", heroLayout === "stage" && "w-full")}>
             {frame}
           </Reveal>
         ) : null}

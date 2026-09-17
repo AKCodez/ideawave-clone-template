@@ -95,7 +95,10 @@ export function Bento({ items, eyebrow, title, description, id }: BentoProps): R
       <Stagger
         as="ul"
         className={clsx(
-          "grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3",
+          "grid grid-cols-1",
+          /* The composition's density: dense packs six cards in three columns,
+             airy gives four cards two wide columns and more air between them. */
+          tokens.brand.composition.bento === "airy" ? "gap-6 md:grid-cols-2 lg:grid-cols-2" : "gap-4 md:grid-cols-2 lg:grid-cols-3",
           title && "mt-stack",
         )}
       >

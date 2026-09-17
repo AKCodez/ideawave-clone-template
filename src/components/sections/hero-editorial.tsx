@@ -1,11 +1,13 @@
 import type { ReactElement } from "react";
 import Link from "next/link";
+import { clsx } from "clsx";
 import brand from "@/brand";
 import { Reveal, SplitText } from "@/components/motion";
 import { Button } from "@/components/ui/button";
 import { tokens } from "@/design/tokens";
 import { Section } from "./section";
 import type { HeroProps } from "./hero";
+import { HeroLayout, heroAlign, heroLayout } from "./hero-layout";
 
 /**
  * Editorial: a magazine cover.
@@ -33,36 +35,40 @@ export function HeroEditorial({
           <p className="text-caption text-faint">{brand.voice.adjectives.join(" / ")}</p>
         </div>
 
-        <SplitText as="h1" by="word" text={headline} className="mt-8 block text-display text-ink" />
-
-        <div className="mt-stack grid gap-stack lg:grid-cols-12 lg:items-start">
-          <div className="flex flex-col gap-6 lg:col-span-5">
-            <Reveal delay={step}>
-              <p className="max-w-prose text-lead text-muted">{sub}</p>
-            </Reveal>
-
-            <Reveal delay={step * 2}>
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <Button asChild variant="primary" size="lg">
-                    <Link href={primary.href}>{primary.label}</Link>
-                  </Button>
-                  {secondary ? (
-                    <Button asChild variant="link" size="lg">
-                      <Link href={secondary.href}>{secondary.label}</Link>
-                    </Button>
-                  ) : null}
-                </div>
-                {note ? <p className="max-w-prose text-small text-faint">{note}</p> : null}
-              </div>
-            </Reveal>
-          </div>
-
-          {frame ? (
-            <Reveal delay={step * 3} className="min-w-0 lg:col-span-7">
-              {frame}
-            </Reveal>
-          ) : null}
+        <div className="mt-8">
+          <HeroLayout
+            rule="border-line"
+            copy={
+              <>
+                <SplitText as="h1" by="word" text={headline} className={clsx("block text-display text-ink", heroLayout === "stage" && "max-w-[18ch]")} />
+                <Reveal delay={step}>
+                  <p className="max-w-prose text-lead text-muted">{sub}</p>
+                </Reveal>
+                <Reveal delay={step * 2}>
+                  <div className={clsx("flex flex-col gap-4", heroAlign)}>
+                    <div className={clsx("flex flex-wrap items-center gap-3", heroLayout === "stage" && "justify-center")}>
+                      <Button asChild variant="primary" size="lg">
+                        <Link href={primary.href}>{primary.label}</Link>
+                      </Button>
+                      {secondary ? (
+                        <Button asChild variant="link" size="lg">
+                          <Link href={secondary.href}>{secondary.label}</Link>
+                        </Button>
+                      ) : null}
+                    </div>
+                    {note ? <p className="max-w-prose text-small text-faint">{note}</p> : null}
+                  </div>
+                </Reveal>
+              </>
+            }
+            frame={
+              frame ? (
+                <Reveal delay={step * 3} className="min-w-0">
+                  {frame}
+                </Reveal>
+              ) : undefined
+            }
+          />
         </div>
       </div>
     </Section>
